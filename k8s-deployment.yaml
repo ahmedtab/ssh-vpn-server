@@ -1,0 +1,346 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# SSH VPN Tunnel Server — Kubernetes Manifests
+#
+# Deploy:
+#   1. Fill in the gw_key secret value (base64-encoded private key)
+#   2. kubectl apply -f k8s-deployment.yaml
+#
+# Requires nodes with:
+#   - /dev/net/tun available
+#   - kubelet --allowed-unsafe-sysctls=net.ipv4.ip_forward,net.ipv6.conf.all.forwarding
+#     (or sysctls set by the privileged container via entrypoint)
+#
+# ── NetworkManager (nm-ssh) — first-time / after pod restart ─────────────────
+# nm-ssh runs as root with no TTY, so it cannot interactively accept a new
+# server host key. After every pod recreation (new SSH host keys) run:
+#
+#   sudo ssh-keyscan -p 5500 -H 157.180.4.166 2>/dev/null \
+#     | sudo tee -a /root/.ssh/known_hosts
+#
+# This is only needed when the pod restarts AND the ssh-host-keys PVC was
+# deleted (i.e. the host keys changed). If the PVC persists across restarts
+# the host key stays the same and no action is needed.
+# ─────────────────────────────────────────────────────────────────────────────
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ssh-vpn
+  labels:
+    app.kubernetes.io/name: ssh-vpn
+    app.kubernetes.io/component: vpn-server
+
+---
+# ── ConfigMap — non-sensitive environment variables ───────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ssh-vpn
+  namespace: ssh-vpn
+  labels:
+    app.kubernetes.io/name: ssh-vpn
+data:
+  # ── SSH ──────────────────────────────────────────────────────────────────
+  SSH_PORT: "2222"
+
+  # ── Tunnel Device ─────────────────────────────────────────────────────────
+  # tun0 matches nm-ssh "Remote device number: 0"
+  TUN_DEV: "tun0"
+
+  # ── Tunnel IPs ────────────────────────────────────────────────────────────
+  TUN_LOCAL_IP: "10.10.10.2"
+  TUN_REMOTE_IP: "10.10.10.1"
+  TUN_NETMASK: "255.255.255.252"
+  TUN_MTU: "1420"
+
+  # ── Routing ───────────────────────────────────────────────────────────────
+  LAN_SUBNET: "169.254.1.0/24"
+  LAN_IFACE: ""
+
+  # ── NAT ───────────────────────────────────────────────────────────────────
+  ENABLE_NAT: "yes"
+
+  # ── Auth (non-secret flags) ───────────────────────────────────────────────
+  ALLOW_PASSWORD_AUTH: "no"
+
+  # ── Multi-user VPN ────────────────────────────────────────────────────────
+  # Add users here or via:  kubectl exec deploy/ssh-vpn -- manage-users.sh add <name> "<key>"
+  # Format: one "username:ssh-pubkey" per line.
+  # Each user gets tun slot N (1–253): server 10.10.N.2, client 10.10.N.1.
+  # Leave empty to manage users at runtime only.
+  VPN_USERS: ""
+
+  # ── Logging ───────────────────────────────────────────────────────────────
+  LOG_LEVEL: "INFO"
+  TUN_MONITOR_INTERVAL: "5"
+
+  # ── Gateway Reverse Tunnel ────────────────────────────────────────────────
+  GW_ENABLED: "yes"
+  GW_HOST: "157.180.4.166"
+  GW_PORT: "1122"
+  GW_USER: "ansible"
+  GW_SSH_KEY_FILE: "/etc/ssh/gw_key"
+  GW_SSH_KEY_B64: "no"
+  GW_EXPOSED_PORT: "2255"
+  GW_PUBLIC_PORT: "5500"
+  GW_BIND_ADDR: "0.0.0.0"
+  GW_RECONNECT_INTERVAL: "30"
+
+---
+# ── Secret — SSH authorized key + gateway private key ─────────────────────────
+# To populate gw_key:
+#   kubectl create secret generic ssh-vpn \
+#     --namespace ssh-vpn \
+#     --from-literal=SSH_AUTHORIZED_KEYS="ssh-ed25519 AAAA..." \
+#     --from-file=gw_key=/path/to/id_circle_k8s \
+#     --dry-run=client -o yaml | kubectl apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ssh-vpn
+  namespace: ssh-vpn
+  labels:
+    app.kubernetes.io/name: ssh-vpn
+type: Opaque
+stringData:
+  SSH_AUTHORIZED_KEYS: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILaQdRIqPxJpga6IGm00a+YM2251nv6XMSH32o3kJ2YI root@ssh-vpn-server"
+  # Paste the raw PEM content of your gateway private key (id_circle_k8s) below:
+  gw_key: |
+    -----BEGIN OPENSSH PRIVATE KEY-----
+    b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+    QyNTUxOQAAACC2kHUSKj8SaYGuiBptNGvmDNtudZ7+lzEh99qN5CdmCAAAAJijkH9ao5B/
+    WgAAAAtzc2gtZWQyNTUxOQAAACC2kHUSKj8SaYGuiBptNGvmDNtudZ7+lzEh99qN5CdmCA
+    AAAEClowIlE/32LMzjztooEK54+XuwgIy9Ne+FGXlLSS/6zraQdRIqPxJpga6IGm00a+YM
+    2251nv6XMSH32o3kJ2YIAAAADmFuc2libGVAbm9kZTAxAQIDBAUGBw==
+    -----END OPENSSH PRIVATE KEY-----
+---
+# ── PVC — SSH host keys (persist to avoid client re-trust warnings) ────────────
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ssh-host-keys
+  namespace: ssh-vpn
+  labels:
+    app.kubernetes.io/name: ssh-vpn
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Mi
+
+---
+# ── PVC — authorized_keys directory ──────────────────────────────────────────
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: authorized-keys
+  namespace: ssh-vpn
+  labels:
+    app.kubernetes.io/name: ssh-vpn
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Mi
+
+---
+# ── PVC — VPN logs ────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vpn-logs
+  namespace: ssh-vpn
+  labels:
+    app.kubernetes.io/name: ssh-vpn
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+# ── PVC — VPN user configs ────────────────────────────────────────────────────
+# Persists per-user tun slot assignments across pod restarts so users
+# keep their IP addresses and slot numbers.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vpn-users
+  namespace: ssh-vpn
+  labels:
+    app.kubernetes.io/name: ssh-vpn
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Mi
+
+---
+# ── Deployment ────────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ssh-vpn
+  namespace: ssh-vpn
+  labels:
+    app.kubernetes.io/name: ssh-vpn
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ssh-vpn
+  strategy:
+    type: Recreate   # Required — only one pod may hold the PVCs at a time
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ssh-vpn
+    spec:
+      # ── Pod-level security context ───────────────────────────────────────
+      # net.ipv4.ip_forward / net.ipv6.conf.all.forwarding are "unsafe"
+      # sysctls blocked by default in Kubernetes (require kubelet flag
+      # --allowed-unsafe-sysctls). Since the container runs privileged,
+      # the entrypoint sets these via `sysctl -w` at container start instead.
+      securityContext: {}
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: ssh-vpn
+          image: registry.app.circle360.net/ssh-vpn-tunnel-server:v1.0
+          imagePullPolicy: IfNotPresent
+
+          # ── Container security — full privileges for TUN/iptables ──────────
+          securityContext:
+            privileged: true          # required for TUNSETIFF ioctl
+            capabilities:
+              add:
+                - NET_ADMIN           # ip link, ip route, iptables
+                - NET_RAW             # raw socket / iptables -j MASQUERADE
+                - SYS_ADMIN           # mount, sysctl inside container
+
+          # ── Environment — non-sensitive from ConfigMap ─────────────────────
+          envFrom:
+            - configMapRef:
+                name: ssh-vpn
+
+          # ── Environment — sensitive from Secret ────────────────────────────
+          env:
+            - name: SSH_AUTHORIZED_KEYS
+              valueFrom:
+                secretKeyRef:
+                  name: ssh-vpn
+                  key: SSH_AUTHORIZED_KEYS
+            - name: VPN_USERS
+              valueFrom:
+                secretKeyRef:
+                  name: ssh-vpn
+                  key: VPN_USERS
+                  optional: true
+            # Empty/unused secrets kept explicit so entrypoint reads them
+            - name: SSH_ROOT_PASSWORD
+              value: ""
+            - name: GW_SSH_KEY
+              value: ""
+            - name: GW_PASSWORD
+              value: ""
+
+          ports:
+            - name: ssh
+              containerPort: 2222
+              protocol: TCP
+
+          # ── Volume mounts ──────────────────────────────────────────────────
+          volumeMounts:
+            - name: ssh-host-keys
+              mountPath: /etc/ssh/server_keys
+            - name: authorized-keys
+              mountPath: /root/.ssh
+            - name: vpn-logs
+              mountPath: /var/log/vpn
+            - name: vpn-users
+              mountPath: /etc/vpn/users
+            - name: tun-device
+              mountPath: /dev/net/tun
+            - name: gw-key
+              mountPath: /etc/ssh/gw_key
+              subPath: gw_key
+              readOnly: true
+
+          # ── Health checks ──────────────────────────────────────────────────
+          livenessProbe:
+            exec:
+              command: ["pgrep", "-x", "sshd"]
+            initialDelaySeconds: 20
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+
+          readinessProbe:
+            exec:
+              command: ["pgrep", "-x", "sshd"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+
+      # ── Volumes ─────────────────────────────────────────────────────────────
+      volumes:
+        - name: ssh-host-keys
+          persistentVolumeClaim:
+            claimName: ssh-host-keys
+        - name: authorized-keys
+          persistentVolumeClaim:
+            claimName: authorized-keys
+        - name: vpn-logs
+          persistentVolumeClaim:
+            claimName: vpn-logs
+        - name: vpn-users
+          persistentVolumeClaim:
+            claimName: vpn-users
+        # TUN character device from the host node
+        - name: tun-device
+          hostPath:
+            path: /dev/net/tun
+            type: CharDevice
+        # Gateway SSH private key from Secret (mode 0600)
+        - name: gw-key
+          secret:
+            secretName: ssh-vpn
+            items:
+              - key: gw_key
+                path: gw_key
+            defaultMode: 0600
+
+---
+# ── Service — exposes the SSH VPN port ────────────────────────────────────────
+# Use type: LoadBalancer if your cluster has a cloud LB provisioner.
+# Use type: NodePort for bare-metal / on-prem (clients connect to node IP).
+# Use type: ClusterIP if you plan to expose via Ingress or a separate LoadBalancer.
+apiVersion: v1
+kind: Service
+metadata:
+  name: ssh-vpn
+  namespace: ssh-vpn
+  labels:
+    app.kubernetes.io/name: ssh-vpn
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: ssh-vpn
+  ports:
+    - name: ssh
+      port: 2222
+      targetPort: 2222
+      protocol: TCP

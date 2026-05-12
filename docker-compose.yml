@@ -1,0 +1,188 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# SSH VPN Tunnel Server — Docker Compose (Testing)
+#
+# Usage:
+#   cp .env.example .env
+#   # Edit .env — add your SSH_AUTHORIZED_KEYS
+#   docker compose up -d --build
+#   docker compose logs -f
+#
+# Build & push:
+#   docker build -t registry.app.circle360.net/ssh-vpn-tunnel-server:v1.0 .
+#   docker push registry.app.circle360.net/ssh-vpn-tunnel-server:v1.0
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  ssh-vpn-server:
+    image: registry.app.circle360.net/ssh-vpn-tunnel-server:v1.0
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ssh-vpn-server
+    hostname: ssh-vpn-server
+    restart: unless-stopped
+
+    # ── Port mapping ────────────────────────────────────────────────────────
+    # Map host port → container SSH port
+    # For production: put a public SSH gateway in front and port-forward here
+    ports:
+      - "${SSH_PORT:-2222}:${SSH_PORT:-2222}"
+
+    # ── Environment variables ────────────────────────────────────────────────
+    environment:
+      # SSH
+      SSH_PORT: "${SSH_PORT:-2222}"
+
+      # Tunnel device
+      # tun0   → raw SSH (-w 0:0) clients, manual scripts (vpn-connect.sh style)
+      # tun100 → NetworkManager SSH (nm-ssh) clients
+      TUN_DEV: "${TUN_DEV:-tun0}"
+
+      # Tunnel IPs (point-to-point)
+      TUN_LOCAL_IP: "${TUN_LOCAL_IP:-10.10.10.2}"    # server-side
+      TUN_REMOTE_IP: "${TUN_REMOTE_IP:-10.10.10.1}"  # client-side
+
+      TUN_NETMASK: "${TUN_NETMASK:-255.255.255.252}"
+      TUN_MTU: "${TUN_MTU:-1340}"
+
+      # Routing
+      LAN_SUBNET: "${LAN_SUBNET:-192.168.0.0/24}"
+      LAN_IFACE: "${LAN_IFACE:-}"   # empty = auto-detect
+
+      # NAT / masquerade — server NATsall tun traffic onto LAN_IFACE
+      # (split vs full tunnel is a CLIENT-side routing decision, not server-side)
+      ENABLE_NAT: "${ENABLE_NAT:-yes}"
+
+      # Authentication — paste public key here (one line, or newline-separated)
+      SSH_AUTHORIZED_KEYS: "${SSH_AUTHORIZED_KEYS:-}"
+
+      # ── Multi-user VPN ─────────────────────────────────────────────────────
+      # Add multiple VPN users, one per line as "username:ssh-pubkey".
+      # Each user is assigned a unique tun slot (1–253), automatically getting:
+      #   Server IP: 10.10.<N>.2 / Client IP: 10.10.<N>.1 / Device: tun<N>
+      # Client connects with:  sudo ./vpn-connect.sh --tun <N>
+      #
+      # Example (in .env):
+      #   VPN_USERS=alice:ssh-ed25519 AAAA...
+      #     bob:ssh-ed25519 BBBB...
+      #
+      # You can also manage users at runtime without a container restart:
+      #   docker exec ssh-vpn-server manage-users.sh add  <name> "<pubkey>"
+      #   docker exec ssh-vpn-server manage-users.sh remove <name>
+      #   docker exec ssh-vpn-server manage-users.sh list
+      VPN_USERS: "${VPN_USERS:-}"
+
+      # Password auth (testing only — leave 'no' in production)
+      ALLOW_PASSWORD_AUTH: "${ALLOW_PASSWORD_AUTH:-no}"
+      SSH_ROOT_PASSWORD: "${SSH_ROOT_PASSWORD:-}"
+
+      # Logging
+      LOG_LEVEL: "${LOG_LEVEL:-INFO}"
+      TUN_MONITOR_INTERVAL: "${TUN_MONITOR_INTERVAL:-5}"
+
+      # ── Gateway Reverse Tunnel ──────────────────────────────────────────
+      # Set GW_ENABLED=yes to expose this container through a public SSH server
+      #
+      # Flow:
+      #   VPN Client → GW_HOST:GW_EXPOSED_PORT
+      #                   └─(reverse SSH tunnel)─► this container:SSH_PORT
+      #
+      # The public gateway sshd must have:
+      #   GatewayPorts yes
+      #   AllowTcpForwarding yes
+      GW_ENABLED: "${GW_ENABLED:-no}"
+
+      # Public SSH gateway server
+      GW_HOST: "${GW_HOST:-}"
+      GW_PORT: "${GW_PORT:-22}"
+      GW_USER: "${GW_USER:-root}"
+
+      # Port the reverse tunnel binds on the gateway (internal)
+      GW_EXPOSED_PORT: "${GW_EXPOSED_PORT:-2255}"
+      # Public port clients connect to — set if NAT maps a different port → GW_EXPOSED_PORT
+      GW_PUBLIC_PORT: "${GW_PUBLIC_PORT:-}"
+
+      # Bind address on gateway (0.0.0.0 = public, 127.0.0.1 = local only)
+      GW_BIND_ADDR: "${GW_BIND_ADDR:-0.0.0.0}"
+
+      # Authentication — set ONE of the following:
+      #   GW_SSH_KEY_FILE      → container path of mounted key (always /etc/ssh/gw_key)
+      #   GW_SSH_KEY_HOST_PATH → host path; compose mounts it → /etc/ssh/gw_key (set in .env)
+      #   GW_SSH_KEY           → raw PEM content (set GW_SSH_KEY_B64=yes for base64)
+      #   GW_PASSWORD          → password via sshpass (testing only)
+      GW_SSH_KEY_FILE: "${GW_SSH_KEY_FILE:-/etc/ssh/gw_key}"
+      GW_SSH_KEY: "${GW_SSH_KEY:-}"
+      GW_SSH_KEY_B64: "${GW_SSH_KEY_B64:-no}"
+      GW_PASSWORD: "${GW_PASSWORD:-}"
+
+      # Seconds between reconnect attempts after tunnel drops
+      GW_RECONNECT_INTERVAL: "${GW_RECONNECT_INTERVAL:-30}"
+
+    # ── Capabilities required for VPN tunneling ──────────────────────────────
+    # privileged: true is required on Docker Desktop (Windows/Mac) for sshd to
+    # create tun interfaces via TUNSETIFF ioctl. cap_add alone is not sufficient
+    # because the default seccomp + AppArmor profiles block the syscalls needed.
+    privileged: true
+
+    # ── TUN device from host ─────────────────────────────────────────────────
+    devices:
+      - /dev/net/tun:/dev/net/tun
+
+    # ── Kernel parameters ────────────────────────────────────────────────────
+    sysctls:
+      net.ipv4.ip_forward: "1"
+      net.ipv6.conf.all.forwarding: "1"
+
+    # ── Persistent volumes ───────────────────────────────────────────────────
+    # ssh_host_keys: SSH host keys persist across container restarts
+    #   → prevents "WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED" on clients
+    # authorized_keys: client public keys (can also be managed via env var)
+    volumes:
+      - ssh_host_keys:/etc/ssh/server_keys
+      - authorized_keys:/root/.ssh
+      - vpn_logs:/var/log/vpn
+      - vpn_users:/etc/vpn/users
+      # Gateway SSH key — bind-mount from host (read-only)
+      # Container path must match GW_SSH_KEY_FILE in .env
+      - ${GW_SSH_KEY_HOST_PATH:-/root/.ssh/id_ed25519}:/etc/ssh/gw_key:ro
+
+    # ── Health check ─────────────────────────────────────────────────────────
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -x sshd > /dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+
+    # ── Logging ──────────────────────────────────────────────────────────────
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+# ── Volumes ───────────────────────────────────────────────────────────────────
+volumes:
+  ssh_host_keys:
+    driver: local
+    labels:
+      com.circle360.app: "ssh-vpn"
+      com.circle360.desc: "SSH host keys — persist to avoid client re-trust warnings"
+
+  authorized_keys:
+    driver: local
+    labels:
+      com.circle360.app: "ssh-vpn"
+      com.circle360.desc: "Client authorized_keys (SSH public keys)"
+
+  vpn_logs:
+    driver: local
+    labels:
+      com.circle360.app: "ssh-vpn"
+      com.circle360.desc: "VPN server logs (tun-monitor output)"
+
+  vpn_users:
+    driver: local
+    labels:
+      com.circle360.app: "ssh-vpn"
+      com.circle360.desc: "Per-user tun configs — persisted so users survive restarts"

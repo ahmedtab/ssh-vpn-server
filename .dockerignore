@@ -1,0 +1,24 @@
+# Files NOT needed in the Docker build context
+# Only Dockerfile + scripts/ directory are needed
+
+.env
+.env.*
+!.env.example
+
+.git
+.gitignore
+.gitattributes
+
+# Existing project scripts (not part of Docker image)
+ssh-vpn-setup.sh
+vpn-connect.sh
+
+# Docs
+*.md
+!README.md
+
+# Editor
+.vscode/
+*.swp
+*.swo
+*~
