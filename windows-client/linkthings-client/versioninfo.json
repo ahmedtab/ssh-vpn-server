@@ -1,0 +1,26 @@
+{
+  "FixedFileInfo": {
+    "FileVersion": {
+      "Major": 1,
+      "Minor": 0,
+      "Patch": 0,
+      "Build": 0
+    },
+    "ProductVersion": {
+      "Major": 1,
+      "Minor": 0,
+      "Patch": 0,
+      "Build": 0
+    }
+  },
+  "StringFileInfo": {
+    "CompanyName": "LinkThings",
+    "FileDescription": "SSH VPN Client for Windows",
+    "FileVersion": "1.0.0.0",
+    "InternalName": "linkthings-client.win",
+    "LegalCopyright": "Copyright (c) 2026 LinkThings. All rights reserved.",
+    "OriginalFilename": "linkthings-client.win.amd64.exe",
+    "ProductName": "LinkThings Client",
+    "ProductVersion": "1.0.0.0"
+  }
+}
