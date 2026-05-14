@@ -134,9 +134,21 @@ func (tm *TunnelManager) Connect(server config.ServerConfig, signer ssh.Signer) 
 
 	session, err := adapter.StartSession(ringBytes)
 	if err != nil {
+		// Adapter may have a leaked session from a previous cancelled connect.
+		// Invalidate, close, recreate and retry once.
+		logging.Infof("start_session_failed_retrying adapter=%s err=%v", adapterName, err)
 		invalidateCachedAdapter(adapterName)
-		adapter.Close()
-		return fmt.Errorf("start wintun session failed: %w", err)
+		_ = adapter.Close()
+		adapter, err = getOrCreateAdapter(adapterName)
+		if err != nil {
+			return fmt.Errorf("start wintun session failed (adapter recreate): %w", err)
+		}
+		session, err = adapter.StartSession(ringBytes)
+		if err != nil {
+			invalidateCachedAdapter(adapterName)
+			_ = adapter.Close()
+			return fmt.Errorf("start wintun session failed: %w", err)
+		}
 	}
 
 	sshCfg := &ssh.ClientConfig{
@@ -277,7 +289,13 @@ func (at *activeTunnel) startBridge() {
 				return
 			}
 			_, _ = windows.WaitForSingleObject(readWait, 500)
+			if at.closed.Load() {
+				return
+			}
 			for {
+				if at.closed.Load() {
+					return
+				}
 				pkt, err := at.session.ReceivePacket()
 				if err != nil {
 					if err == windows.ERROR_NO_MORE_ITEMS {
@@ -319,6 +337,9 @@ func (at *activeTunnel) startBridge() {
 			}
 			ipPkt := buf[4:n]
 			at.rxBytes.Add(uint64(len(ipPkt)))
+			if at.closed.Load() {
+				return
+			}
 			dst, err := at.session.AllocateSendPacket(len(ipPkt))
 			if err != nil {
 				return

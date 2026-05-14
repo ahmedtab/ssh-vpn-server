@@ -701,6 +701,24 @@ func cmdStatsTick(tm *tunnel.TunnelManager) tea.Cmd {
 }
 
 // Command functions
+const connectMaxRetries = 5
+const connectRetryDelay = 2 * time.Second
+
+func isRetryableConnectError(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := err.Error()
+	// Do not retry auth failures or config errors — they won't succeed on retry.
+	if strings.Contains(msg, "unable to authenticate") ||
+		strings.Contains(msg, "invalid server config") ||
+		strings.Contains(msg, "server config not found") ||
+		strings.Contains(msg, "failed to load private key") {
+		return false
+	}
+	return true
+}
+
 func cmdConnect(serverName string, cm *config.ConfigManager, km *keymgmt.KeyManager, tm *tunnel.TunnelManager) tea.Cmd {
 	return func() tea.Msg {
 		logging.Infof("connect_cmd_enter server=%s", serverName)
@@ -719,11 +737,23 @@ func cmdConnect(serverName string, cm *config.ConfigManager, km *keymgmt.KeyMana
 			return ConnectMsg{Server: serverName, Error: fmt.Errorf("failed to load private key: %w", err)}
 		}
 
-		if err := tm.Connect(*server, signer); err != nil {
-			return ConnectMsg{Server: serverName, Error: err}
+		var lastErr error
+		for attempt := 1; attempt <= connectMaxRetries; attempt++ {
+			if attempt > 1 {
+				logging.Infof("connect_retry server=%s attempt=%d/%d", serverName, attempt, connectMaxRetries)
+				time.Sleep(connectRetryDelay)
+			}
+			lastErr = tm.Connect(*server, signer)
+			if lastErr == nil {
+				return ConnectMsg{Server: serverName}
+			}
+			logging.Infof("connect_attempt_failed server=%s attempt=%d err=%v", serverName, attempt, lastErr)
+			if !isRetryableConnectError(lastErr) {
+				return ConnectMsg{Server: serverName, Error: lastErr}
+			}
 		}
 
-		return ConnectMsg{Server: serverName}
+		return ConnectMsg{Server: serverName, Error: fmt.Errorf("connection timed out after %d attempts: %w", connectMaxRetries, lastErr)}
 	}
 }
 
