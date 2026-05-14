@@ -142,6 +142,10 @@ func (cm *ConfigManager) AddServer(server ServerConfig) error {
 		cm.config = &Config{}
 	}
 
+	if err := server.Validate(); err != nil {
+		return err
+	}
+
 	// Check for duplicate names
 	for _, s := range cm.config.Servers {
 		if s.Name == server.Name {
@@ -150,6 +154,37 @@ func (cm *ConfigManager) AddServer(server ServerConfig) error {
 	}
 
 	cm.config.Servers = append(cm.config.Servers, server)
+	return cm.Save()
+}
+
+// UpdateServer updates an existing server by name.
+func (cm *ConfigManager) UpdateServer(oldName string, server ServerConfig) error {
+	if cm.config == nil {
+		return fmt.Errorf("no servers configured")
+	}
+
+	if err := server.Validate(); err != nil {
+		return err
+	}
+
+	index := -1
+	for i := range cm.config.Servers {
+		if cm.config.Servers[i].Name == oldName {
+			index = i
+			break
+		}
+	}
+	if index == -1 {
+		return fmt.Errorf("server '%s' not found", oldName)
+	}
+
+	for i := range cm.config.Servers {
+		if i != index && cm.config.Servers[i].Name == server.Name {
+			return fmt.Errorf("server with name '%s' already exists", server.Name)
+		}
+	}
+
+	cm.config.Servers[index] = server
 	return cm.Save()
 }
 

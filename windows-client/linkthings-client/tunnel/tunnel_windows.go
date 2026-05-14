@@ -9,6 +9,7 @@ import (
 	"net"
 	"os/exec"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -26,6 +27,14 @@ const (
 )
 
 const tunModePointToPoint = uint32(1)
+
+const adapterTunnelType = "LinkThings"
+const stableAdapterName = "LT-Main"
+
+var (
+	adapterCacheMu sync.Mutex
+	adapterCache   = map[string]*wintun.Adapter{}
+)
 
 type activeTunnel struct {
 	adapter     *wintun.Adapter
@@ -101,23 +110,18 @@ func (tm *TunnelManager) Connect(server config.ServerConfig, signer ssh.Signer) 
 		tunMTU = "1340"
 	}
 
-	adapterName := sanitizeAdapterName(server.Name)
+	adapterName := stableAdapterName
 	logging.Infof("tunnel_connect_start adapter=%s gateway=%s tunnel=%d mtu=%s", adapterName, gatewayHost, tunSlot, tunMTU)
-	_ = CleanupNamedAdapter(adapterName)
-	_ = CleanupOrphanAdapters()
-	adapterGUID := deterministicAdapterGUID(adapterName)
 
-	adapter, err := wintun.CreateAdapter(adapterName, "Wintun", &adapterGUID)
+	adapter, err := getOrCreateAdapter(adapterName)
 	if err != nil {
-		return fmt.Errorf("create adapter failed: %w", err)
+		return fmt.Errorf("open/create adapter failed: %w", err)
 	}
 
-	if err := runCommand("netsh", "interface", "ip", "set", "address", adapterName, "static", localIP, localMask); err != nil {
-		adapter.Close()
+	if err := setAdapterIPv4(adapterName, localIP, localMask); err != nil {
 		return fmt.Errorf("set adapter IP failed: %w", err)
 	}
 	if err := runCommand("netsh", "interface", "ipv4", "set", "subinterface", adapterName, "mtu="+tunMTU, "store=active"); err != nil {
-		adapter.Close()
 		return fmt.Errorf("set adapter MTU failed: %w", err)
 	}
 
@@ -130,6 +134,7 @@ func (tm *TunnelManager) Connect(server config.ServerConfig, signer ssh.Signer) 
 
 	session, err := adapter.StartSession(ringBytes)
 	if err != nil {
+		invalidateCachedAdapter(adapterName)
 		adapter.Close()
 		return fmt.Errorf("start wintun session failed: %w", err)
 	}
@@ -143,7 +148,7 @@ func (tm *TunnelManager) Connect(server config.ServerConfig, signer ssh.Signer) 
 	sshConn, err := ssh.Dial("tcp", gatewayHost, sshCfg)
 	if err != nil {
 		session.End()
-		adapter.Close()
+		// Keep adapter alive for reuse; auth/network failures should not churn adapter identity.
 		return fmt.Errorf("ssh dial failed: %w", err)
 	}
 
@@ -154,7 +159,6 @@ func (tm *TunnelManager) Connect(server config.ServerConfig, signer ssh.Signer) 
 	tunCh, reqs, err := sshConn.OpenChannel("tun@openssh.com", payload)
 	if err != nil {
 		session.End()
-		_ = deleteWintunAdapter(adapter, adapterName)
 		sshConn.Close()
 		return fmt.Errorf("open tun channel failed: %w", err)
 	}
@@ -360,7 +364,7 @@ func (at *activeTunnel) close() {
 		_ = runCommand("route", "delete", "128.0.0.0", "mask", "128.0.0.0", at.lanGateway)
 	}
 
-	_ = deleteWintunAdapter(at.adapter, at.adapterName)
+	// Keep adapter alive for reuse; do not delete/recreate per connection.
 }
 
 func (at *activeTunnel) stats() Stats {
@@ -372,12 +376,70 @@ func (at *activeTunnel) stats() Stats {
 	}
 }
 
-// deleteWintunAdapter explicitly removes the Wintun adapter from the system
-func deleteWintunAdapter(adapter *wintun.Adapter, adapterName string) error {
-	if adapter != nil {
-		_ = adapter.Close()
+func getOrCreateAdapter(adapterName string) (*wintun.Adapter, error) {
+	adapterCacheMu.Lock()
+	defer adapterCacheMu.Unlock()
+
+	if cached, ok := adapterCache[adapterName]; ok && cached != nil {
+		return cached, nil
 	}
-	return CleanupNamedAdapter(adapterName)
+
+	if opened, err := wintun.OpenAdapter(adapterName); err == nil {
+		adapterCache[adapterName] = opened
+		return opened, nil
+	}
+
+	guid := deterministicAdapterGUID(adapterName)
+	created, err := wintun.CreateAdapter(adapterName, adapterTunnelType, &guid)
+	if err != nil {
+		return nil, err
+	}
+	adapterCache[adapterName] = created
+	return created, nil
+}
+
+func invalidateCachedAdapter(adapterName string) {
+	adapterCacheMu.Lock()
+	defer adapterCacheMu.Unlock()
+	delete(adapterCache, adapterName)
+}
+
+func setAdapterIPv4(adapterName, localIP, localMask string) error {
+	// Use modern netsh ipv4 syntax; it is less error-prone than legacy interface ip syntax.
+	err := runCommand(
+		"netsh",
+		"interface", "ipv4", "set", "address",
+		"name="+adapterName,
+		"source=static",
+		"address="+localIP,
+		"mask="+localMask,
+	)
+	if err == nil {
+		return nil
+	}
+
+	msg := strings.ToLower(err.Error())
+	if strings.Contains(msg, "object already exists") {
+		// If the same address already exists, keep going instead of failing/crashing retries.
+		logging.Infof("adapter_ip_already_set adapter=%s ip=%s mask=%s", adapterName, localIP, localMask)
+		return nil
+	}
+
+	if strings.Contains(msg, "syntax is incorrect") || strings.Contains(msg, "filename, directory name, or volume label syntax is incorrect") {
+		// Fallback to legacy syntax on systems where ipv4 set address parser is picky.
+		legacyErr := runCommand("netsh", "interface", "ip", "set", "address", adapterName, "static", localIP, localMask)
+		if legacyErr == nil {
+			return nil
+		}
+		legacyMsg := strings.ToLower(legacyErr.Error())
+		if strings.Contains(legacyMsg, "object already exists") {
+			logging.Infof("adapter_ip_already_set_legacy adapter=%s ip=%s mask=%s", adapterName, localIP, localMask)
+			return nil
+		}
+		return legacyErr
+	}
+
+	return err
 }
 
 func CleanupNamedAdapter(adapterName string) error {

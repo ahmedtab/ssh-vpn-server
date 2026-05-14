@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"os/exec"
+	"strconv"
+	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -24,6 +26,15 @@ const (
 	ScreenDisconnecting
 	ScreenError
 	ScreenSetup
+	ScreenServerForm
+	ScreenDeleteConfirm
+)
+
+type ServerFormMode int
+
+const (
+	ServerFormAdd ServerFormMode = iota
+	ServerFormEdit
 )
 
 // MainModel is the root model for the TUI application
@@ -42,6 +53,14 @@ type MainModel struct {
 	clipboardOK      bool
 	stats            tunnel.Stats
 	exitOnDisconnect bool
+	connectCanceled  bool
+	serverFormMode   ServerFormMode
+	serverForm       config.ServerConfig
+	serverFormOrigin string
+	serverFormIndex  int
+	serverFormInput  string
+	deleteServerName string
+	uiNotice         string
 }
 
 // NewMainModel creates a new main model
@@ -90,10 +109,20 @@ func (m *MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case ConnectMsg:
+		if m.connectCanceled {
+			m.connectCanceled = false
+			if msg.Error == nil {
+				logging.Infof("connect_canceled_late_success server=%s; disconnecting", msg.Server)
+				return m, cmdDisconnect(m.tunnelManager)
+			}
+			logging.Infof("connect_canceled_result_ignored server=%s err=%v", msg.Server, msg.Error)
+			return m, nil
+		}
+
 		if msg.Error != nil {
 			m.screen = ScreenError
-			m.errorMessage = msg.Error.Error()
-			m.connectionLog = append(m.connectionLog, "Connection failed: "+msg.Error.Error())
+			m.errorMessage = userFacingError(msg.Error)
+			m.connectionLog = append(m.connectionLog, "Connection failed: "+m.errorMessage)
 			logging.Errorf("connect_failed server=%s err=%v", msg.Server, msg.Error)
 			return m, nil
 		}
@@ -107,8 +136,8 @@ func (m *MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case DisconnectMsg:
 		if msg.Error != nil {
 			m.screen = ScreenError
-			m.errorMessage = msg.Error.Error()
-			m.connectionLog = append(m.connectionLog, "Disconnect failed: "+msg.Error.Error())
+			m.errorMessage = userFacingError(msg.Error)
+			m.connectionLog = append(m.connectionLog, "Disconnect failed: "+m.errorMessage)
 			logging.Errorf("disconnect_failed err=%v", msg.Error)
 			return m, nil
 		}
@@ -130,8 +159,44 @@ func (m *MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // handleKeyPress handles keyboard input based on current screen
 func (m *MainModel) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	if m.screen == ScreenServerForm {
+		return m.handleServerFormKey(msg)
+	}
+	if m.screen == ScreenDeleteConfirm {
+		return m.handleDeleteConfirmKey(msg)
+	}
+
 	switch msg.String() {
-	case "ctrl+c", "q":
+	case "ctrl+c":
+		if m.screen == ScreenConnecting {
+			m.connectCanceled = true
+			m.screen = ScreenServerSelect
+			m.uiNotice = "Connection cancelled"
+			logging.Infof("connect_cancel_requested server=%s", m.selectedServer)
+			return m, nil
+		}
+		if m.screen == ScreenConnected {
+			m.exitOnDisconnect = true
+			m.screen = ScreenDisconnecting
+			return m, cmdDisconnect(m.tunnelManager)
+		}
+		if m.screen == ScreenError {
+			m.screen = ScreenServerSelect
+			m.errorMessage = ""
+		} else if m.screen == ScreenSetup {
+			m.screen = ScreenServerSelect
+		} else {
+			return m, tea.Quit
+		}
+
+	case "q":
+		if m.screen == ScreenConnecting {
+			m.connectCanceled = true
+			m.screen = ScreenServerSelect
+			m.uiNotice = "Connection cancelled"
+			logging.Infof("connect_cancel_requested server=%s", m.selectedServer)
+			return m, nil
+		}
 		if m.screen == ScreenConnected {
 			m.exitOnDisconnect = true
 			m.screen = ScreenDisconnecting
@@ -165,9 +230,11 @@ func (m *MainModel) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		if m.screen == ScreenServerSelect {
 			servers := m.configManager.GetServers()
 			if m.serverListIndex < len(servers) {
+				m.connectCanceled = false
 				m.selectedServer = servers[m.serverListIndex].Name
 				m.screen = ScreenConnecting
 				m.connectionLog = []string{fmt.Sprintf("Connecting to: %s", m.selectedServer)}
+				m.uiNotice = ""
 				logging.Infof("connect_start server=%s", m.selectedServer)
 				return m, cmdConnect(m.selectedServer, m.configManager, m.keyManager, m.tunnelManager)
 			}
@@ -186,6 +253,42 @@ func (m *MainModel) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.screen = ScreenSetup
 			authorizedEntry := `tunnel="0",no-pty,no-agent-forwarding,no-port-forwarding,no-user-rc,no-X11-forwarding ` + m.pubKeyContent
 			return m, cmdCopyToClipboard(authorizedEntry)
+		}
+
+	case "a":
+		if m.screen == ScreenServerSelect {
+			m.startServerForm(ServerFormAdd, "", config.ServerConfig{
+				Name:       "New Server",
+				Gateway:    "host:2255",
+				LocalIP:    "10.10.11.1/30",
+				RemoteIP:   "10.10.11.2",
+				LANSubnet:  "192.168.4.0/24",
+				SSHTunnel:  0,
+				MTU:        "1340",
+				FullTunnel: true,
+			})
+		}
+
+	case "e":
+		if m.screen == ScreenServerSelect {
+			servers := m.configManager.GetServers()
+			if len(servers) > 0 && m.serverListIndex < len(servers) {
+				s := servers[m.serverListIndex]
+				m.startServerForm(ServerFormEdit, s.Name, s)
+			}
+		}
+
+	case "x":
+		if m.screen == ScreenServerSelect {
+			servers := m.configManager.GetServers()
+			if len(servers) <= 1 {
+				m.uiNotice = "At least one server is required"
+				return m, nil
+			}
+			if len(servers) > 0 && m.serverListIndex < len(servers) {
+				m.deleteServerName = servers[m.serverListIndex].Name
+				m.screen = ScreenDeleteConfirm
+			}
 		}
 
 	case "b", "esc":
@@ -219,6 +322,10 @@ func (m *MainModel) View() string {
 		return m.viewError()
 	case ScreenSetup:
 		return m.viewSetup()
+	case ScreenServerForm:
+		return m.viewServerForm()
+	case ScreenDeleteConfirm:
+		return m.viewDeleteConfirm()
 	default:
 		return "Unknown screen"
 	}
@@ -246,7 +353,11 @@ func (m *MainModel) viewServerSelect() string {
 		content += prefix + server.Name + "\n"
 	}
 
-	content += "\nControls: ↑↓ (select) | Enter (connect) | K (setup/key info) | Q (exit)\n"
+	if m.uiNotice != "" {
+		content += "\n" + lipgloss.NewStyle().Foreground(lipgloss.Color("3")).Render(m.uiNotice) + "\n"
+	}
+
+	content += "\nControls: ↑↓ (select) | Enter (connect) | A (add) | E (edit) | X (delete) | K (setup/key info) | Q (exit)\n"
 
 	return lipgloss.JoinVertical(lipgloss.Top, title, "", content)
 }
@@ -343,6 +454,211 @@ func (m *MainModel) viewSetup() string {
 	out += "Controls: B or ESC (back) | Q (exit)\n"
 
 	return lipgloss.JoinVertical(lipgloss.Top, title, "", out)
+}
+
+func (m *MainModel) viewServerForm() string {
+	titleText := "Add Server"
+	if m.serverFormMode == ServerFormEdit {
+		titleText = "Edit Server"
+	}
+	title := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("6")).Render("🛠 " + titleText)
+
+	labels := []string{"Name", "Gateway", "LocalIP", "RemoteIP", "LANSubnet", "SSHTunnel", "MTU", "FullTunnel"}
+	values := []string{
+		m.serverForm.Name,
+		m.serverForm.Gateway,
+		m.serverForm.LocalIP,
+		m.serverForm.RemoteIP,
+		m.serverForm.LANSubnet,
+		strconv.Itoa(m.serverForm.SSHTunnel),
+		m.serverForm.MTU,
+		strconv.FormatBool(m.serverForm.FullTunnel),
+	}
+
+	var body strings.Builder
+	body.WriteString("Edit fields then press Ctrl+S to save.\n\n")
+	for i := range labels {
+		prefix := "  "
+		if i == m.serverFormIndex {
+			prefix = lipgloss.NewStyle().Foreground(lipgloss.Color("2")).Render("> ")
+			values[i] = m.serverFormInput
+		}
+		body.WriteString(fmt.Sprintf("%s%s: %s\n", prefix, labels[i], values[i]))
+	}
+	body.WriteString("\nControls: Enter/Tab (next) | Up/Down (move) | Ctrl+S (save) | Esc (cancel)\n")
+
+	return lipgloss.JoinVertical(lipgloss.Top, title, "", body.String())
+}
+
+func (m *MainModel) viewDeleteConfirm() string {
+	title := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("1")).Render("⚠ Delete Server")
+	body := fmt.Sprintf("Delete server '%s'?\n\nThis cannot be undone.\n\nPress Y to confirm or N/Esc to cancel.\n", m.deleteServerName)
+	return lipgloss.JoinVertical(lipgloss.Top, title, "", body)
+}
+
+func (m *MainModel) startServerForm(mode ServerFormMode, originName string, server config.ServerConfig) {
+	m.serverFormMode = mode
+	m.serverFormOrigin = originName
+	m.serverForm = server
+	m.serverFormIndex = 0
+	m.serverFormInput = m.getServerFormField(0)
+	m.uiNotice = ""
+	m.screen = ScreenServerForm
+}
+
+func (m *MainModel) getServerFormField(index int) string {
+	switch index {
+	case 0:
+		return m.serverForm.Name
+	case 1:
+		return m.serverForm.Gateway
+	case 2:
+		return m.serverForm.LocalIP
+	case 3:
+		return m.serverForm.RemoteIP
+	case 4:
+		return m.serverForm.LANSubnet
+	case 5:
+		return strconv.Itoa(m.serverForm.SSHTunnel)
+	case 6:
+		return m.serverForm.MTU
+	case 7:
+		return strconv.FormatBool(m.serverForm.FullTunnel)
+	default:
+		return ""
+	}
+}
+
+func (m *MainModel) setServerFormField(index int, value string) error {
+	value = strings.TrimSpace(value)
+	switch index {
+	case 0:
+		m.serverForm.Name = value
+	case 1:
+		m.serverForm.Gateway = value
+	case 2:
+		m.serverForm.LocalIP = value
+	case 3:
+		m.serverForm.RemoteIP = value
+	case 4:
+		m.serverForm.LANSubnet = value
+	case 5:
+		v, err := strconv.Atoi(value)
+		if err != nil {
+			return fmt.Errorf("SSHTunnel must be a number")
+		}
+		m.serverForm.SSHTunnel = v
+	case 6:
+		m.serverForm.MTU = value
+	case 7:
+		v, err := strconv.ParseBool(strings.ToLower(value))
+		if err != nil {
+			return fmt.Errorf("FullTunnel must be true or false")
+		}
+		m.serverForm.FullTunnel = v
+	}
+	return nil
+}
+
+func (m *MainModel) moveServerFormField(delta int) {
+	if err := m.setServerFormField(m.serverFormIndex, m.serverFormInput); err != nil {
+		m.uiNotice = err.Error()
+		return
+	}
+	count := 8
+	m.serverFormIndex = (m.serverFormIndex + delta + count) % count
+	m.serverFormInput = m.getServerFormField(m.serverFormIndex)
+	m.uiNotice = ""
+}
+
+func (m *MainModel) saveServerForm() error {
+	if err := m.setServerFormField(m.serverFormIndex, m.serverFormInput); err != nil {
+		return err
+	}
+	if err := m.serverForm.Validate(); err != nil {
+		return err
+	}
+
+	if m.serverFormMode == ServerFormAdd {
+		if err := m.configManager.AddServer(m.serverForm); err != nil {
+			return err
+		}
+		m.uiNotice = "Server added"
+	} else {
+		if err := m.configManager.UpdateServer(m.serverFormOrigin, m.serverForm); err != nil {
+			return err
+		}
+		m.uiNotice = "Server updated"
+	}
+
+	servers := m.configManager.GetServers()
+	for i := range servers {
+		if servers[i].Name == m.serverForm.Name {
+			m.serverListIndex = i
+			break
+		}
+	}
+	m.screen = ScreenServerSelect
+	return nil
+}
+
+func (m *MainModel) handleServerFormKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch msg.String() {
+	case "esc":
+		m.screen = ScreenServerSelect
+		m.uiNotice = "Changes discarded"
+		return m, nil
+	case "up":
+		m.moveServerFormField(-1)
+		return m, nil
+	case "down", "enter", "tab":
+		m.moveServerFormField(1)
+		return m, nil
+	case "ctrl+s":
+		if err := m.saveServerForm(); err != nil {
+			m.uiNotice = err.Error()
+		}
+		return m, nil
+	case "backspace":
+		r := []rune(m.serverFormInput)
+		if len(r) > 0 {
+			m.serverFormInput = string(r[:len(r)-1])
+		}
+		return m, nil
+	}
+
+	if msg.Type == tea.KeyRunes {
+		m.serverFormInput += string(msg.Runes)
+		return m, nil
+	}
+	return m, nil
+}
+
+func (m *MainModel) handleDeleteConfirmKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch msg.String() {
+	case "y":
+		if err := m.configManager.RemoveServer(m.deleteServerName); err != nil {
+			m.uiNotice = err.Error()
+		} else {
+			m.uiNotice = "Server deleted"
+			servers := m.configManager.GetServers()
+			if m.serverListIndex >= len(servers) {
+				m.serverListIndex = len(servers) - 1
+			}
+			if m.serverListIndex < 0 {
+				m.serverListIndex = 0
+			}
+		}
+		m.screen = ScreenServerSelect
+		m.deleteServerName = ""
+		return m, nil
+	case "n", "esc":
+		m.screen = ScreenServerSelect
+		m.deleteServerName = ""
+		m.uiNotice = "Delete cancelled"
+		return m, nil
+	}
+	return m, nil
 }
 
 // Message types for TUI events
@@ -442,4 +758,21 @@ func formatConnectedFor(connectedAt time.Time) string {
 		d = 0
 	}
 	return d.String()
+}
+
+func userFacingError(err error) string {
+	if err == nil {
+		return ""
+	}
+	raw := strings.ToLower(err.Error())
+	if strings.Contains(raw, "unable to authenticate") || strings.Contains(raw, "publickey") {
+		return "authenticate failed"
+	}
+	if strings.Contains(raw, "open tun channel failed") {
+		return "tunnel channel open failed"
+	}
+	if strings.Contains(raw, "timed out") {
+		return "connection timeout"
+	}
+	return err.Error()
 }
