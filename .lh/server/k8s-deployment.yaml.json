@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 1,
+            "activePatchIndex": 2,
             "patches": [
                 {
                     "date": 1778725993956,
@@ -12,6 +12,10 @@
                 {
                     "date": 1778728027385,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -237,9 +237,9 @@\n         - name: regcred\n       containers:\n         - name: ssh-vpn\n           image: registry.app.circle360.net/ssh-vpn-tunnel-server:v2.0\n-          imagePullPolicy: IfNotPresent\n+          imagePullPolicy: Always\n \n           # ── Container security — full privileges for TUN/iptables ──────────\n           securityContext:\n             privileged: true          # required for TUNSETIFF ioctl\n"
+                },
+                {
+                    "date": 1778731149023,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -114,8 +114,10 @@\n   # REQUIRED: set to 'openssl rand -hex 32' output before deploying\n   VPN_SESSION_SECRET: \"change-me-generate-with-openssl-rand-hex-32\"\n   # REQUIRED: hex secret shared with Windows client OTPSharedSecret config\n   VPN_OTP_SHARED_SECRET: \"\"\n+  # Password for the web admin panel — log in at :8080 with username 'root'\n+  VPN_ADMIN_PASSWORD: \"change-me\"\n   # Paste the raw PEM content of your gateway private key (id_circle_k8s) below:\n   gw_key: |\n     -----BEGIN OPENSSH PRIVATE KEY-----\n     b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW\n@@ -284,8 +286,14 @@\n                 secretKeyRef:\n                   name: ssh-vpn\n                   key: VPN_OTP_SHARED_SECRET\n                   optional: true\n+            - name: VPN_ADMIN_PASSWORD\n+              valueFrom:\n+                secretKeyRef:\n+                  name: ssh-vpn\n+                  key: VPN_ADMIN_PASSWORD\n+                  optional: true\n \n           ports:\n             - name: ssh\n               containerPort: 2222\n"
                 }
             ],
             "date": 1778725993956,

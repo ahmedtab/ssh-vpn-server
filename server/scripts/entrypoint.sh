@@ -31,6 +31,9 @@ ENABLE_NAT="${ENABLE_NAT:-yes}"
 SSH_AUTHORIZED_KEYS="${SSH_AUTHORIZED_KEYS:-}"
 ALLOW_PASSWORD_AUTH="${ALLOW_PASSWORD_AUTH:-no}"
 SSH_ROOT_PASSWORD="${SSH_ROOT_PASSWORD:-}"
+# Password for the web admin panel (PAM auth — sets root Linux account password)
+# Set VPN_ADMIN_PASSWORD=<password> to enable admin UI login with username 'root'
+VPN_ADMIN_PASSWORD="${VPN_ADMIN_PASSWORD:-}"
 LOG_LEVEL="${LOG_LEVEL:-INFO}"
 TUN_MONITOR_INTERVAL="${TUN_MONITOR_INTERVAL:-5}"
 
@@ -238,6 +241,17 @@ if [[ -n "$SSH_ROOT_PASSWORD" ]]; then
     fi
 fi
 
+# ── Step 5b: Admin UI Password ────────────────────────────────────────────────
+# Sets the root Linux account password for PAM-based web admin login.
+# Login at http://<host>:8080 with username 'root' and this password.
+if [[ -n "$VPN_ADMIN_PASSWORD" ]]; then
+    echo "root:${VPN_ADMIN_PASSWORD}" | chpasswd
+    success "Admin UI password set — log in at :8080 with username 'root'"
+else
+    warn "VPN_ADMIN_PASSWORD not set — web admin login will fail"
+    warn "Set VPN_ADMIN_PASSWORD=<password> to enable admin UI access"
+fi
+
 # ── Step 6: IP Forwarding ─────────────────────────────────────────────────────
 section "5. IP Forwarding"
 # /proc/sys is read-only inside Docker — must use sysctl(8), not echo.
@@ -282,6 +296,17 @@ if [[ "${ENABLE_NAT}" == "yes" ]]; then
         -m state --state RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || \
         iptables -A FORWARD -i "${LAN_IFACE}" -o 'tun+' \
         -m state --state RELATED,ESTABLISHED -j ACCEPT
+
+    # TCP MSS clamping: clamp SYN packets to path MTU to prevent fragmentation
+    # inside the SSH tunnel (tun MTU is lower than physical MTU).
+    iptables -t mangle -C FORWARD -p tcp --tcp-flags SYN,RST SYN \
+        -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null || \
+        iptables -t mangle -A FORWARD -p tcp --tcp-flags SYN,RST SYN \
+        -j TCPMSS --clamp-mss-to-pmtu
+    iptables -t mangle -C OUTPUT -p tcp --tcp-flags SYN,RST SYN \
+        -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null || \
+        iptables -t mangle -A OUTPUT -p tcp --tcp-flags SYN,RST SYN \
+        -j TCPMSS --clamp-mss-to-pmtu
 
     success "iptables MASQUERADE configured on ${LAN_IFACE}"
 else

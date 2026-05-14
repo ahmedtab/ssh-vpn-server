@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 1,
+            "activePatchIndex": 3,
             "patches": [
                 {
                     "date": 1778721764704,
@@ -12,6 +12,14 @@
                 {
                     "date": 1778724996251,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -351,10 +351,24 @@\n else\n     info \"GW_ENABLED=no — set GW_ENABLED=yes to expose this server via a public gateway\"\n fi\n \n-# ── Step 11: Start SSH Daemon ─────────────────────────────────────────────────\n-section \"9. Starting SSH Daemon\"\n+# ── Step 11: Start vpn-api control plane ─────────────────────────────────────\n+section \"10. Starting vpn-api Control Plane\"\n+if command -v vpn-api &>/dev/null; then\n+    VPN_API_LISTEN=\"${VPN_API_LISTEN:-:8080}\"\n+    VPN_AUDIT_LOG=\"${VPN_AUDIT_LOG:-/var/log/vpn/audit.log}\"\n+    export VPN_API_LISTEN VPN_API_PUBLIC VPN_SESSION_SECRET \\\n+           VPN_OTP_SHARED_SECRET VPN_OTP_TOKEN_TTL VPN_AUDIT_LOG\n+    vpn-api >> /var/log/vpn/api.log 2>&1 &\n+    API_PID=$!\n+    success \"vpn-api started (PID ${API_PID}) → ${VPN_API_LISTEN} | log: /var/log/vpn/api.log\"\n+else\n+    warn \"vpn-api binary not found — admin web UI not available\"\n+fi\n+\n+# ── Step 12: Start SSH Daemon ─────────────────────────────────────────────────\n+section \"11. Starting SSH Daemon\"\n info \"SSH listening on port ${SSH_PORT} — waiting for VPN clients...\"\n echo \"\"\n \n # exec replaces this shell with sshd as PID 1\n"
+                },
+                {
+                    "date": 1778730581039,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -282,8 +282,19 @@\n         -m state --state RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || \\\n         iptables -A FORWARD -i \"${LAN_IFACE}\" -o 'tun+' \\\n         -m state --state RELATED,ESTABLISHED -j ACCEPT\n \n+    # TCP MSS clamping: clamp SYN packets to path MTU to prevent fragmentation\n+    # inside the SSH tunnel (tun MTU is lower than physical MTU).\n+    iptables -t mangle -C FORWARD -p tcp --tcp-flags SYN,RST SYN \\\n+        -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null || \\\n+        iptables -t mangle -A FORWARD -p tcp --tcp-flags SYN,RST SYN \\\n+        -j TCPMSS --clamp-mss-to-pmtu\n+    iptables -t mangle -C OUTPUT -p tcp --tcp-flags SYN,RST SYN \\\n+        -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null || \\\n+        iptables -t mangle -A OUTPUT -p tcp --tcp-flags SYN,RST SYN \\\n+        -j TCPMSS --clamp-mss-to-pmtu\n+\n     success \"iptables MASQUERADE configured on ${LAN_IFACE}\"\n else\n     warn \"NAT disabled (ENABLE_NAT=no) — clients will not have internet access via this server\"\n fi\n"
+                },
+                {
+                    "date": 1778731149021,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -30,8 +30,11 @@\n # Clients control split vs full tunnel by which routes they add after connecting.\n SSH_AUTHORIZED_KEYS=\"${SSH_AUTHORIZED_KEYS:-}\"\n ALLOW_PASSWORD_AUTH=\"${ALLOW_PASSWORD_AUTH:-no}\"\n SSH_ROOT_PASSWORD=\"${SSH_ROOT_PASSWORD:-}\"\n+# Password for the web admin panel (PAM auth — sets root Linux account password)\n+# Set VPN_ADMIN_PASSWORD=<password> to enable admin UI login with username 'root'\n+VPN_ADMIN_PASSWORD=\"${VPN_ADMIN_PASSWORD:-}\"\n LOG_LEVEL=\"${LOG_LEVEL:-INFO}\"\n TUN_MONITOR_INTERVAL=\"${TUN_MONITOR_INTERVAL:-5}\"\n \n # Gateway reverse tunnel\n@@ -237,8 +240,19 @@\n         success \"Root password set (password auth enabled)\"\n     fi\n fi\n \n+# ── Step 5b: Admin UI Password ────────────────────────────────────────────────\n+# Sets the root Linux account password for PAM-based web admin login.\n+# Login at http://<host>:8080 with username 'root' and this password.\n+if [[ -n \"$VPN_ADMIN_PASSWORD\" ]]; then\n+    echo \"root:${VPN_ADMIN_PASSWORD}\" | chpasswd\n+    success \"Admin UI password set — log in at :8080 with username 'root'\"\n+else\n+    warn \"VPN_ADMIN_PASSWORD not set — web admin login will fail\"\n+    warn \"Set VPN_ADMIN_PASSWORD=<password> to enable admin UI access\"\n+fi\n+\n # ── Step 6: IP Forwarding ─────────────────────────────────────────────────────\n section \"5. IP Forwarding\"\n # /proc/sys is read-only inside Docker — must use sysctl(8), not echo.\n # docker-compose sysctls: already sets this before entrypoint runs;\n"
                 }
             ],
             "date": 1778721764704,

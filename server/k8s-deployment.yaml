@@ -115,6 +115,8 @@ stringData:
   VPN_SESSION_SECRET: "change-me-generate-with-openssl-rand-hex-32"
   # REQUIRED: hex secret shared with Windows client OTPSharedSecret config
   VPN_OTP_SHARED_SECRET: ""
+  # Password for the web admin panel — log in at :8080 with username 'root'
+  VPN_ADMIN_PASSWORD: "change-me"
   # Paste the raw PEM content of your gateway private key (id_circle_k8s) below:
   gw_key: |
     -----BEGIN OPENSSH PRIVATE KEY-----
@@ -284,6 +286,12 @@ spec:
                 secretKeyRef:
                   name: ssh-vpn
                   key: VPN_OTP_SHARED_SECRET
+                  optional: true
+            - name: VPN_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ssh-vpn
+                  key: VPN_ADMIN_PASSWORD
                   optional: true
 
           ports:

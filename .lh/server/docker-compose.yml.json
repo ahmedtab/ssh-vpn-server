@@ -3,11 +3,15 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 0,
+            "activePatchIndex": 1,
             "patches": [
                 {
                     "date": 1778724996246,
                     "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1778731149022,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -130,8 +130,11 @@\n       VPN_OTP_TOKEN_TTL: \"${VPN_OTP_TOKEN_TTL:-600}\"\n       # Set to \"true\" to enable HSTS + public-mode controls (when behind TLS termination)\n       VPN_API_PUBLIC: \"${VPN_API_PUBLIC:-false}\"\n       VPN_AUDIT_LOG: \"/var/log/vpn/audit.log\"\n+      # Admin web UI password — log in at :8080 with username 'root' and this password\n+      # The admin panel uses PAM auth against the container's Linux root account\n+      VPN_ADMIN_PASSWORD: \"${VPN_ADMIN_PASSWORD:-}\"\n \n     # ── Capabilities required for VPN tunneling ──────────────────────────────\n     # privileged: true is required on Docker Desktop (Windows/Mac) for sshd to\n     # create tun interfaces via TUNSETIFF ioctl. cap_add alone is not sufficient\n"
                 }
             ],
             "date": 1778724996246,

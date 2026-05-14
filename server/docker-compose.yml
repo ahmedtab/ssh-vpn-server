@@ -131,6 +131,9 @@ services:
       # Set to "true" to enable HSTS + public-mode controls (when behind TLS termination)
       VPN_API_PUBLIC: "${VPN_API_PUBLIC:-false}"
       VPN_AUDIT_LOG: "/var/log/vpn/audit.log"
+      # Admin web UI password — log in at :8080 with username 'root' and this password
+      # The admin panel uses PAM auth against the container's Linux root account
+      VPN_ADMIN_PASSWORD: "${VPN_ADMIN_PASSWORD:-}"
 
     # ── Capabilities required for VPN tunneling ──────────────────────────────
     # privileged: true is required on Docker Desktop (Windows/Mac) for sshd to
