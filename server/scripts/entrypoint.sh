@@ -51,6 +51,7 @@ GW_RECONNECT_INTERVAL="${GW_RECONNECT_INTERVAL:-30}"
 # Multi-user: newline-separated "username:pubkey" pairs
 # Each user gets a unique tun slot (1–253), IPs 10.10.<N>.1/10.10.<N>.2
 VPN_USERS="${VPN_USERS:-}"
+USERS_DIR="/etc/vpn/users"
 
 # Extract tun device number (tun0 → 0, tun100 → 100) — used for legacy single-user mode
 TUN_NUM=$(echo "$TUN_DEV" | grep -oE '[0-9]+$' || echo "0")
@@ -140,8 +141,8 @@ section "4. Authorized Keys"
 mkdir -p /root/.ssh
 chmod 700 /root/.ssh
 
-# Build fresh authorized_keys
-> /root/.ssh/authorized_keys
+AUTH_KEYS="/root/.ssh/authorized_keys"
+touch "${AUTH_KEYS}"
 
 if [[ -n "$SSH_AUTHORIZED_KEYS" ]]; then
     key_count=0
@@ -152,25 +153,29 @@ if [[ -n "$SSH_AUTHORIZED_KEYS" ]]; then
 
         if echo "$line" | grep -qE '^(ssh-|ecdsa-|sk-)'; then
             # Plain public key — prefix with tunnel restriction
-            echo "tunnel=\"${TUN_NUM}\" ${line}" >> /root/.ssh/authorized_keys
+            formatted_key="tunnel=\"${TUN_NUM}\" ${line}"
         elif echo "$line" | grep -q 'tunnel='; then
             # Already has a tunnel option — use as-is
-            echo "$line" >> /root/.ssh/authorized_keys
+            formatted_key="$line"
         else
             # Has other options (no-pty etc) but no tunnel — prepend tunnel
-            echo "tunnel=\"${TUN_NUM}\",${line}" >> /root/.ssh/authorized_keys
+            formatted_key="tunnel=\"${TUN_NUM}\",${line}"
         fi
-        (( key_count++ )) || true
+
+        if ! grep -Fxq "$formatted_key" "${AUTH_KEYS}"; then
+            echo "$formatted_key" >> "${AUTH_KEYS}"
+            (( key_count++ )) || true
+        fi
     done <<< "$SSH_AUTHORIZED_KEYS"
 
     success "Configured ${key_count} key(s) with tunnel=\"${TUN_NUM}\" permission"
 else
     warn "SSH_AUTHORIZED_KEYS is empty — no client keys loaded yet"
     warn "Add keys at runtime:"
-    warn "  docker exec <container> bash -c 'echo \"tunnel=\\\"${TUN_NUM}\\\" ssh-ed25519 AAAA...\" >> /root/.ssh/authorized_keys'"
+    warn "  docker exec <container> bash -c 'echo \"tunnel=\\\"${TUN_NUM}\\\" ssh-ed25519 AAAA...\" >> ${AUTH_KEYS}'"
 fi
 
-chmod 600 /root/.ssh/authorized_keys
+chmod 600 "${AUTH_KEYS}"
 
 # ── Step 4b: User config directory + legacy default.conf ─────────────────────
 section "4b. User Config Directory"
@@ -347,8 +352,22 @@ else
     info "GW_ENABLED=no — set GW_ENABLED=yes to expose this server via a public gateway"
 fi
 
-# ── Step 11: Start SSH Daemon ─────────────────────────────────────────────────
-section "9. Starting SSH Daemon"
+# ── Step 11: Start vpn-api control plane ─────────────────────────────────────
+section "10. Starting vpn-api Control Plane"
+if command -v vpn-api &>/dev/null; then
+    VPN_API_LISTEN="${VPN_API_LISTEN:-:8080}"
+    VPN_AUDIT_LOG="${VPN_AUDIT_LOG:-/var/log/vpn/audit.log}"
+    export VPN_API_LISTEN VPN_API_PUBLIC VPN_SESSION_SECRET \
+           VPN_OTP_SHARED_SECRET VPN_OTP_TOKEN_TTL VPN_AUDIT_LOG
+    vpn-api >> /var/log/vpn/api.log 2>&1 &
+    API_PID=$!
+    success "vpn-api started (PID ${API_PID}) → ${VPN_API_LISTEN} | log: /var/log/vpn/api.log"
+else
+    warn "vpn-api binary not found — admin web UI not available"
+fi
+
+# ── Step 12: Start SSH Daemon ─────────────────────────────────────────────────
+section "11. Starting SSH Daemon"
 info "SSH listening on port ${SSH_PORT} — waiting for VPN clients..."
 echo ""
 

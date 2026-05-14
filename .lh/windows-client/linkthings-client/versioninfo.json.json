@@ -1,0 +1,18 @@
+{
+    "sourceFile": "windows-client/linkthings-client/versioninfo.json",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1778682787673,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1778682787673,
+            "name": "Commit-0",
+            "content": "{\n  \"FixedFileInfo\": {\n    \"FileVersion\": {\n      \"Major\": 1,\n      \"Minor\": 0,\n      \"Patch\": 0,\n      \"Build\": 0\n    },\n    \"ProductVersion\": {\n      \"Major\": 1,\n      \"Minor\": 0,\n      \"Patch\": 0,\n      \"Build\": 0\n    }\n  },\n  \"StringFileInfo\": {\n    \"CompanyName\": \"LinkThings\",\n    \"FileDescription\": \"SSH VPN Client for Windows\",\n    \"FileVersion\": \"1.0.0.0\",\n    \"InternalName\": \"linkthings-client.win\",\n    \"LegalCopyright\": \"Copyright (c) 2026 LinkThings. All rights reserved.\",\n    \"OriginalFilename\": \"linkthings-client.win.amd64.exe\",\n    \"ProductName\": \"LinkThings Client\",\n    \"ProductVersion\": \"1.0.0.0\"\n  }\n}\n"
+        }
+    ]
+}

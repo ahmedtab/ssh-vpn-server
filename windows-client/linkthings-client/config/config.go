@@ -17,6 +17,15 @@ type ServerConfig struct {
 	SSHTunnel  int    `json:"sshTunnel"`  // Tunnel slot number (0-15, default 0 for multi-user support)
 	MTU        string `json:"mtu"`        // MTU value (default "1340")
 	FullTunnel bool   `json:"fullTunnel"` // Route all internet through VPN (default true)
+
+	// OTP provisioning (optional — used by the automatic provisioning flow)
+	// ProvisionURL is the full URL of the control plane provisioning endpoint,
+	// e.g. "http://10.20.0.5:8080/api/v1/provision"
+	ProvisionURL string `json:"provisionURL,omitempty"`
+	// OTPSharedSecret is the hex-encoded HMAC secret shared with the server.
+	// Generate with: openssl rand -hex 32
+	// This should be stored securely and not committed to version control.
+	OTPSharedSecret string `json:"otpSharedSecret,omitempty"`
 }
 
 // Config represents the complete configuration

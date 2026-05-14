@@ -1,0 +1,22 @@
+{
+    "sourceFile": "windows-client/linkthings-client/elevation_windows.go",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 1,
+            "patches": [
+                {
+                    "date": 1778684249698,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1778684758308,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -23,8 +23,9 @@\n \texePath, err := os.Executable()\n \tif err != nil {\n \t\treturn false\n \t}\n+\texePath = resolveExecutablePathForElevation(exePath)\n \n \targs := strings.Join(os.Args[1:], \" \")\n \n \tshell32 := windows.NewLazySystemDLL(\"shell32.dll\")\n@@ -52,8 +53,47 @@\n \t// Per ShellExecute docs, return value > 32 means success.\n \treturn ret > 32\n }\n \n+func resolveExecutablePathForElevation(path string) string {\n+\tif len(path) < 2 || path[1] != ':' {\n+\t\treturn path\n+\t}\n+\n+\tdrive := strings.ToUpper(path[:2])\n+\tmpr := windows.NewLazySystemDLL(\"mpr.dll\")\n+\twnetGetConnectionW := mpr.NewProc(\"WNetGetConnectionW\")\n+\tif err := mpr.Load(); err != nil {\n+\t\treturn path\n+\t}\n+\tif err := wnetGetConnectionW.Find(); err != nil {\n+\t\treturn path\n+\t}\n+\n+\tlocalName, _ := windows.UTF16PtrFromString(drive)\n+\tbuf := make([]uint16, 2048)\n+\tbufLen := uint32(len(buf))\n+\n+\tret, _, _ := wnetGetConnectionW.Call(\n+\t\tuintptr(unsafe.Pointer(localName)),\n+\t\tuintptr(unsafe.Pointer(&buf[0])),\n+\t\tuintptr(unsafe.Pointer(&bufLen)),\n+\t)\n+\n+\tconst noError = 0\n+\tif ret != noError {\n+\t\treturn path\n+\t}\n+\n+\tuncRoot := windows.UTF16ToString(buf)\n+\tif uncRoot == \"\" {\n+\t\treturn path\n+\t}\n+\n+\t// Keep the original subpath after the drive prefix (e.g. \"\\dist\\app.exe\").\n+\treturn uncRoot + path[2:]\n+}\n+\n func showElevationRequiredMessage() {\n \tuser32 := windows.NewLazySystemDLL(\"user32.dll\")\n \tmessageBoxW := user32.NewProc(\"MessageBoxW\")\n \tif err := user32.Load(); err != nil {\n"
+                }
+            ],
+            "date": 1778684249698,
+            "name": "Commit-0",
+            "content": "//go:build windows\n\npackage main\n\nimport (\n\t\"os\"\n\t\"strings\"\n\t\"unsafe\"\n\n\t\"golang.org/x/sys/windows\"\n)\n\nfunc isAdmin() bool {\n\tf, err := os.Open(`\\\\.\\PHYSICALDRIVE0`)\n\tif err != nil {\n\t\treturn false\n\t}\n\t_ = f.Close()\n\treturn true\n}\n\nfunc relaunchElevated() bool {\n\texePath, err := os.Executable()\n\tif err != nil {\n\t\treturn false\n\t}\n\n\targs := strings.Join(os.Args[1:], \" \")\n\n\tshell32 := windows.NewLazySystemDLL(\"shell32.dll\")\n\tshellExecuteW := shell32.NewProc(\"ShellExecuteW\")\n\tif err := shell32.Load(); err != nil {\n\t\treturn false\n\t}\n\tif err := shellExecuteW.Find(); err != nil {\n\t\treturn false\n\t}\n\n\tverbPtr, _ := windows.UTF16PtrFromString(\"runas\")\n\texePtr, _ := windows.UTF16PtrFromString(exePath)\n\targsPtr, _ := windows.UTF16PtrFromString(args)\n\n\tret, _, _ := shellExecuteW.Call(\n\t\t0,\n\t\tuintptr(unsafe.Pointer(verbPtr)),\n\t\tuintptr(unsafe.Pointer(exePtr)),\n\t\tuintptr(unsafe.Pointer(argsPtr)),\n\t\t0,\n\t\t1,\n\t)\n\n\t// Per ShellExecute docs, return value > 32 means success.\n\treturn ret > 32\n}\n\nfunc showElevationRequiredMessage() {\n\tuser32 := windows.NewLazySystemDLL(\"user32.dll\")\n\tmessageBoxW := user32.NewProc(\"MessageBoxW\")\n\tif err := user32.Load(); err != nil {\n\t\treturn\n\t}\n\tif err := messageBoxW.Find(); err != nil {\n\t\treturn\n\t}\n\n\ttextPtr, _ := windows.UTF16PtrFromString(\"Administrator privileges are required to create network adapters.\\nPlease run LinkThings Client as Administrator.\")\n\ttitlePtr, _ := windows.UTF16PtrFromString(\"LinkThings Client\")\n\n\tconst mbIconError = 0x00000010\n\tconst mbOk = 0x00000000\n\n\t_, _, _ = messageBoxW.Call(\n\t\t0,\n\t\tuintptr(unsafe.Pointer(textPtr)),\n\t\tuintptr(unsafe.Pointer(titlePtr)),\n\t\tuintptr(mbOk|mbIconError),\n\t)\n}\n"
+        }
+    ]
+}

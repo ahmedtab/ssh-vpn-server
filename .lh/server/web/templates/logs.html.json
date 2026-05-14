@@ -1,0 +1,22 @@
+{
+    "sourceFile": "server/web/templates/logs.html",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 1,
+            "patches": [
+                {
+                    "date": 1778724753144,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1778728027382,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -55,9 +55,15 @@\n   if (!file) return;\n   es = new EventSource('/api/v1/logs/' + encodeURIComponent(file) + '/stream');\n   es.onmessage = function(e) {\n     var entry = JSON.parse(e.data);\n-    var line = entry.raw || (entry.ts + ' [' + (entry.level||'') + '] ' + (entry.msg||''));\n+    var line;\n+    if (entry.raw) {\n+      line = entry.raw;\n+    } else {\n+      var ts = entry.ts ? new Date(entry.ts).toLocaleString() : '';\n+      line = ts + ' [' + (entry.level||'') + '] ' + (entry.msg||'');\n+    }\n     logOutput.textContent += line + '\\n';\n     logOutput.scrollTop = logOutput.scrollHeight;\n   };\n   es.onerror = function() { stopLive(); };\n"
+                }
+            ],
+            "date": 1778724753144,
+            "name": "Commit-0",
+            "content": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>VPN Admin — Logs</title>\n<link rel=\"stylesheet\" href=\"/static/style.css\">\n</head>\n<body>\n{{template \"nav\" .}}\n<main>\n  <h2>Log Viewer</h2>\n\n  <!-- File selector -->\n  <div class=\"log-controls\">\n    <form method=\"GET\" action=\"/logs\">\n      <label>Log file\n        <select name=\"file\" onchange=\"this.form.submit()\">\n          {{range .Files}}\n          <option value=\"{{.}}\" {{if eq . $.Selected}}selected{{end}}>{{.}}</option>\n          {{end}}\n        </select>\n      </label>\n    </form>\n    {{if .Selected}}\n    <button id=\"live-btn\" class=\"btn btn-secondary\" onclick=\"toggleLive()\">▶ Live tail</button>\n    {{end}}\n  </div>\n\n  <!-- Log output -->\n  <pre id=\"log-output\" class=\"log-view\">{{range .Entries}}{{if .Raw}}{{.Raw}}\n{{else}}{{.Timestamp.Format \"2006-01-02 15:04:05\"}} [{{.Level}}] {{.Msg}}\n{{end}}{{end}}</pre>\n</main>\n\n<script>\nvar es = null;\nvar live = false;\nvar logOutput = document.getElementById('log-output');\n// Auto-scroll to bottom on load\nlogOutput.scrollTop = logOutput.scrollHeight;\n\nfunction toggleLive() {\n  if (live) {\n    stopLive();\n  } else {\n    startLive();\n  }\n}\n\nfunction startLive() {\n  live = true;\n  document.getElementById('live-btn').textContent = '⏹ Stop live';\n  var file = new URLSearchParams(window.location.search).get('file') || '';\n  if (!file) return;\n  es = new EventSource('/api/v1/logs/' + encodeURIComponent(file) + '/stream');\n  es.onmessage = function(e) {\n    var entry = JSON.parse(e.data);\n    var line = entry.raw || (entry.ts + ' [' + (entry.level||'') + '] ' + (entry.msg||''));\n    logOutput.textContent += line + '\\n';\n    logOutput.scrollTop = logOutput.scrollHeight;\n  };\n  es.onerror = function() { stopLive(); };\n}\n\nfunction stopLive() {\n  live = false;\n  document.getElementById('live-btn').textContent = '▶ Live tail';\n  if (es) { es.close(); es = null; }\n}\n</script>\n</body>\n</html>\n"
+        }
+    ]
+}

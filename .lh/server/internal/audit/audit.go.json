@@ -1,0 +1,18 @@
+{
+    "sourceFile": "server/internal/audit/audit.go",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1778724753143,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1778724753143,
+            "name": "Commit-0",
+            "content": "package audit\n// Package audit writes structured JSON audit events to a log file.\n// Every admin action and provisioning request is recorded with actor,\n// action, result, and timestamp so operators can review what happened.\npackage audit\n\nimport (\n\t\"encoding/json\"\n\t\"os\"\n\t\"sync\"\n\t\"time\"\n)\n\n// Event is a single audit record.\ntype Event struct {\n\tTimestamp time.Time `json:\"ts\"`\n\tActor     string    `json:\"actor\"`      // Linux username or \"system\"\n\tAction    string    `json:\"action\"`     // e.g. \"user.create\", \"user.delete\", \"auth.login\"\n\tTarget    string    `json:\"target\"`     // subject of the action (VPN username, IP, …)\n\tResult    string    `json:\"result\"`     // \"ok\" | \"denied\" | \"error\"\n\tDetail    string    `json:\"detail,omitempty\"`\n\tRemoteIP  string    `json:\"remote_ip,omitempty\"`\n}\n\n// Logger writes audit events to a file.\ntype Logger struct {\n\tmu  sync.Mutex\n\tf   *os.File\n\tenc *json.Encoder\n}\n\n// NewLogger opens (or creates) the audit log file at path.\nfunc NewLogger(path string) (*Logger, error) {\n\tf, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0640)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\tenc := json.NewEncoder(f)\n\tenc.SetEscapeHTML(false)\n\treturn &Logger{f: f, enc: enc}, nil\n}\n\n// Log writes one audit event. It is safe for concurrent use.\nfunc (l *Logger) Log(e Event) {\n\tif e.Timestamp.IsZero() {\n\t\te.Timestamp = time.Now().UTC()\n\t}\n\tl.mu.Lock()\n\tdefer l.mu.Unlock()\n\t_ = l.enc.Encode(e) // best-effort; disk errors are silent to avoid cascades\n}\n\n// Close flushes and closes the underlying file.\nfunc (l *Logger) Close() error {\n\tl.mu.Lock()\n\tdefer l.mu.Unlock()\n\treturn l.f.Close()\n}\n"
+        }
+    ]
+}

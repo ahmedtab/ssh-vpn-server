@@ -1,0 +1,18 @@
+{
+    "sourceFile": "windows-client/linkthings-client/.gitignore",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1778682787675,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1778682787675,
+            "name": "Commit-0",
+            "content": "# Build artifacts\ndist/\n*.exe\n*.dll\n*.so\n*.dylib\n\n# Binaries\nbin/\n\n# Go build cache\n.cache/\n\n# IDE\n.vscode/\n.idea/\n*.swp\n*.swo\n*~\n\n# OS\n.DS_Store\nThumbs.db\n*.tmp\n\n# Test coverage\n*.out\ncoverage.txt\n\n# Environment\n.env\n.env.local\n\n# SSH keys (don't commit private keys)\n.ssh/\n!.ssh/.gitkeep\n"
+        }
+    ]
+}

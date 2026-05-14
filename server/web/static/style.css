@@ -1,0 +1,235 @@
+/* ── Reset & base ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0d1117;
+  --surface:  #161b22;
+  --border:   #30363d;
+  --text:     #c9d1d9;
+  --muted:    #8b949e;
+  --accent:   #58a6ff;
+  --green:    #3fb950;
+  --red:      #f85149;
+  --yellow:   #d29922;
+  --radius:   6px;
+  --font:     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+html { font-size: 16px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── Nav ──────────────────────────────────────────────────────────────────── */
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  height: 56px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.nav-brand { font-weight: 700; font-size: 1.1rem; color: var(--text); }
+.nav-links { display: flex; gap: 1.25rem; align-items: center; }
+.nav-links a { color: var(--muted); font-size: .9rem; }
+.nav-links a:hover { color: var(--text); text-decoration: none; }
+.nav-logout {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: var(--radius);
+  padding: .25rem .75rem;
+  cursor: pointer;
+  font-size: .85rem;
+}
+.nav-logout:hover { border-color: var(--red); color: var(--red); }
+
+/* ── Main content ─────────────────────────────────────────────────────────── */
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+h2 { margin-bottom: 1.5rem; font-size: 1.4rem; font-weight: 600; }
+
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-block;
+  padding: .45rem 1rem;
+  background: var(--accent);
+  color: #0d1117;
+  border: none;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: .875rem;
+  cursor: pointer;
+  line-height: 1.4;
+}
+.btn:hover { opacity: .85; text-decoration: none; }
+.btn-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-danger { background: var(--red); color: #fff; }
+.btn-sm { padding: .25rem .6rem; font-size: .8rem; }
+
+/* ── Login page ───────────────────────────────────────────────────────────── */
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 380px;
+}
+.login-card h1 { font-size: 1.5rem; margin-bottom: .5rem; text-align: center; }
+.login-card .subtitle { color: var(--muted); text-align: center; margin-bottom: 1.5rem; font-size: .9rem; }
+.login-card label {
+  display: block;
+  margin-bottom: 1rem;
+  font-size: .875rem;
+  font-weight: 500;
+}
+.login-card input {
+  display: block;
+  width: 100%;
+  margin-top: .3rem;
+  padding: .5rem .75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: .9rem;
+}
+.login-card button { width: 100%; margin-top: .5rem; padding: .6rem; font-size: 1rem; }
+
+/* ── Alerts ───────────────────────────────────────────────────────────────── */
+.alert {
+  padding: .75rem 1rem;
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+  font-size: .875rem;
+}
+.alert-error { background: rgba(248,81,73,.15); border: 1px solid var(--red); color: var(--red); }
+
+/* ── Stat cards ────────────────────────────────────────────────────────────── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+.stat-label { font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.stat-value { font-size: 2rem; font-weight: 700; }
+.status-ok { color: var(--green); }
+
+.quick-links { display: flex; gap: 1rem; flex-wrap: wrap; }
+
+/* ── Add user form ────────────────────────────────────────────────────────── */
+.add-form-toggle { margin-bottom: 1.5rem; }
+.add-form-toggle summary { cursor: pointer; }
+.add-form {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  margin-top: .75rem;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  max-width: 540px;
+}
+.add-form label { font-size: .875rem; font-weight: 500; }
+.add-form input, .add-form textarea {
+  display: block;
+  width: 100%;
+  margin-top: .3rem;
+  padding: .45rem .75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: monospace;
+  font-size: .85rem;
+  resize: vertical;
+}
+
+/* ── Data table ─────────────────────────────────────────────────────────────── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .875rem;
+}
+.data-table th, .data-table td {
+  padding: .6rem .9rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+.data-table th { color: var(--muted); font-weight: 500; font-size: .8rem; text-transform: uppercase; }
+.data-table tr:hover td { background: rgba(255,255,255,.03); }
+.empty { color: var(--muted); text-align: center; padding: 2rem; }
+
+.status-badge {
+  display: inline-block;
+  padding: .15rem .5rem;
+  border-radius: 999px;
+  font-size: .75rem;
+  font-weight: 600;
+}
+.status-up   { background: rgba(63,185,80,.2); color: var(--green); }
+.status-down { background: rgba(139,148,158,.15); color: var(--muted); }
+
+/* ── Logs ───────────────────────────────────────────────────────────────────── */
+.log-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.log-controls select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: .35rem .6rem;
+  font-size: .875rem;
+}
+.log-view {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  overflow: auto;
+  max-height: 70vh;
+  font-size: .8rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}

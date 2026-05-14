@@ -1,0 +1,18 @@
+{
+    "sourceFile": "server/cmd/vpn-api/main.go",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1778724753141,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1778724753141,
+            "name": "Commit-0",
+            "content": "package main\npackage main\n\nimport (\n\t\"context\"\n\t\"log/slog\"\n\t\"net/http\"\n\t\"os\"\n\t\"os/signal\"\n\t\"syscall\"\n\t\"time\"\n\n\t\"github.com/gin-gonic/gin\"\n\t\"registry.app.circle360.net/ssh-vpn/control-plane/internal/api\"\n\t\"registry.app.circle360.net/ssh-vpn/control-plane/internal/audit\"\n\t\"registry.app.circle360.net/ssh-vpn/control-plane/internal/config\"\n\t\"registry.app.circle360.net/ssh-vpn/control-plane/internal/middleware\"\n\t\"registry.app.circle360.net/ssh-vpn/control-plane/internal/session\"\n)\n\nfunc main() {\n\tcfg := config.Load()\n\n\t// ── Structured logger ────────────────────────────────────────────────────\n\tlogLevel := slog.LevelInfo\n\tif cfg.Debug {\n\t\tlogLevel = slog.LevelDebug\n\t}\n\tlogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel}))\n\tslog.SetDefault(logger)\n\n\t// ── Audit log ────────────────────────────────────────────────────────────\n\tauditLog, err := audit.NewLogger(cfg.AuditLogPath)\n\tif err != nil {\n\t\tslog.Error(\"failed to open audit log\", \"err\", err)\n\t\tos.Exit(1)\n\t}\n\tdefer auditLog.Close()\n\n\t// ── Session store ────────────────────────────────────────────────────────\n\tsessionStore := session.NewStore(cfg.SessionSecret, cfg.SessionMaxAge)\n\n\t// ── Gin router ───────────────────────────────────────────────────────────\n\tif !cfg.Debug {\n\t\tgin.SetMode(gin.ReleaseMode)\n\t}\n\tr := gin.New()\n\tr.Use(gin.Recovery())\n\tr.Use(middleware.RequestLogger(logger))\n\tr.Use(middleware.RateLimit(cfg.RateLimit))\n\tr.Use(middleware.SecurityHeaders(cfg.PublicMode))\n\n\t// ── Load HTML templates and static assets ────────────────────────────────\n\tr.LoadHTMLGlob(\"/app/web/templates/*.html\")\n\tr.Static(\"/static\", \"/app/web/static\")\n\n\t// ── Register routes ───────────────────────────────────────────────────────\n\tapi.RegisterRoutes(r, cfg, sessionStore, auditLog)\n\n\t// ── TLS vs plain HTTP ────────────────────────────────────────────────────\n\tsrv := &http.Server{\n\t\tAddr:         cfg.Listen,\n\t\tHandler:      r,\n\t\tReadTimeout:  15 * time.Second,\n\t\tWriteTimeout: 30 * time.Second,\n\t\tIdleTimeout:  60 * time.Second,\n\t}\n\n\tgo func() {\n\t\tslog.Info(\"vpn-api starting\", \"addr\", cfg.Listen, \"public_mode\", cfg.PublicMode)\n\t\tvar err error\n\t\tif cfg.TLSCert != \"\" && cfg.TLSKey != \"\" {\n\t\t\terr = srv.ListenAndServeTLS(cfg.TLSCert, cfg.TLSKey)\n\t\t} else {\n\t\t\terr = srv.ListenAndServe()\n\t\t}\n\t\tif err != nil && err != http.ErrServerClosed {\n\t\t\tslog.Error(\"server error\", \"err\", err)\n\t\t\tos.Exit(1)\n\t\t}\n\t}()\n\n\t// ── Graceful shutdown ────────────────────────────────────────────────────\n\tquit := make(chan os.Signal, 1)\n\tsignal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)\n\t<-quit\n\tslog.Info(\"shutting down vpn-api\")\n\n\tctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)\n\tdefer cancel()\n\tif err := srv.Shutdown(ctx); err != nil {\n\t\tslog.Error(\"shutdown error\", \"err\", err)\n\t}\n}\n"
+        }
+    ]
+}

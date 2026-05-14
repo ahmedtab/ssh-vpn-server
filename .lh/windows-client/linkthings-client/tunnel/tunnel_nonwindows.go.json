@@ -1,0 +1,22 @@
+{
+    "sourceFile": "windows-client/linkthings-client/tunnel/tunnel_nonwindows.go",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 1,
+            "patches": [
+                {
+                    "date": 1778700503860,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1778713946526,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -8,8 +8,12 @@\n \t\"golang.org/x/crypto/ssh\"\n \t\"linkthings.io/client/config\"\n )\n \n+func CleanupOrphanAdapters() error {\n+\treturn nil\n+}\n+\n func (tm *TunnelManager) Connect(_ config.ServerConfig, _ ssh.Signer) error {\n \treturn fmt.Errorf(\"tunnel is only supported on Windows\")\n }\n \n"
+                }
+            ],
+            "date": 1778700503860,
+            "name": "Commit-0",
+            "content": "//go:build !windows\n\npackage tunnel\n\nimport (\n\t\"fmt\"\n\n\t\"golang.org/x/crypto/ssh\"\n\t\"linkthings.io/client/config\"\n)\n\nfunc (tm *TunnelManager) Connect(_ config.ServerConfig, _ ssh.Signer) error {\n\treturn fmt.Errorf(\"tunnel is only supported on Windows\")\n}\n\nfunc (tm *TunnelManager) Disconnect() error {\n\ttm.mu.Lock()\n\tdefer tm.mu.Unlock()\n\ttm.state = nil\n\treturn nil\n}\n"
+        }
+    ]
+}

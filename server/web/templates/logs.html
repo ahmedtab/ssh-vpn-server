@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VPN Admin — Logs</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+{{template "nav" .}}
+<main>
+  <h2>Log Viewer</h2>
+
+  <!-- File selector -->
+  <div class="log-controls">
+    <form method="GET" action="/logs">
+      <label>Log file
+        <select name="file" onchange="this.form.submit()">
+          {{range .Files}}
+          <option value="{{.}}" {{if eq . $.Selected}}selected{{end}}>{{.}}</option>
+          {{end}}
+        </select>
+      </label>
+    </form>
+    {{if .Selected}}
+    <button id="live-btn" class="btn btn-secondary" onclick="toggleLive()">▶ Live tail</button>
+    {{end}}
+  </div>
+
+  <!-- Log output -->
+  <pre id="log-output" class="log-view">{{range .Entries}}{{if .Raw}}{{.Raw}}
+{{else}}{{.Timestamp.Format "2006-01-02 15:04:05"}} [{{.Level}}] {{.Msg}}
+{{end}}{{end}}</pre>
+</main>
+
+<script>
+var es = null;
+var live = false;
+var logOutput = document.getElementById('log-output');
+// Auto-scroll to bottom on load
+logOutput.scrollTop = logOutput.scrollHeight;
+
+function toggleLive() {
+  if (live) {
+    stopLive();
+  } else {
+    startLive();
+  }
+}
+
+function startLive() {
+  live = true;
+  document.getElementById('live-btn').textContent = '⏹ Stop live';
+  var file = new URLSearchParams(window.location.search).get('file') || '';
+  if (!file) return;
+  es = new EventSource('/api/v1/logs/' + encodeURIComponent(file) + '/stream');
+  es.onmessage = function(e) {
+    var entry = JSON.parse(e.data);
+    var line;
+    if (entry.raw) {
+      line = entry.raw;
+    } else {
+      var ts = entry.ts ? new Date(entry.ts).toLocaleString() : '';
+      line = ts + ' [' + (entry.level||'') + '] ' + (entry.msg||'');
+    }
+    logOutput.textContent += line + '\n';
+    logOutput.scrollTop = logOutput.scrollHeight;
+  };
+  es.onerror = function() { stopLive(); };
+}
+
+function stopLive() {
+  live = false;
+  document.getElementById('live-btn').textContent = '▶ Live tail';
+  if (es) { es.close(); es = null; }
+}
+</script>
+</body>
+</html>

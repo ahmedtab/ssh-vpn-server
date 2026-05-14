@@ -1,0 +1,22 @@
+{
+    "sourceFile": "windows-client/linkthings-client/build.bat",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 1,
+            "patches": [
+                {
+                    "date": 1778682787673,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1778683799789,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -21,9 +21,9 @@\n if not exist !OUTPUT_DIR! mkdir !OUTPUT_DIR!\n \n REM Build executable\n echo Building LinkThings Client v!VERSION! for Windows amd64...\n-set CGO_ENABLED=1\n+set CGO_ENABLED=0\n set GOOS=windows\n set GOARCH=amd64\n \n REM Build with version information embedded\n"
+                }
+            ],
+            "date": 1778682787673,
+            "name": "Commit-0",
+            "content": "@echo off\nREM Build script for LinkThings Client - Windows amd64\nREM This script should be run on Windows with Go installed\nREM Usage: build.bat [version] (default: 1.0.0.0)\n\nsetlocal enabledelayedexpansion\n\nREM Check if Go is installed\nwhere go >nul 2>nul\nif %errorlevel% neq 0 (\n    echo Error: Go is not installed or not in PATH\n    exit /b 1\n)\n\nREM Set version from argument or default\nset VERSION=%1\nif \"!VERSION!\"==\"\" set VERSION=1.0.0.0\n\nREM Set output directory\nset OUTPUT_DIR=.\\dist\nif not exist !OUTPUT_DIR! mkdir !OUTPUT_DIR!\n\nREM Build executable\necho Building LinkThings Client v!VERSION! for Windows amd64...\nset CGO_ENABLED=1\nset GOOS=windows\nset GOARCH=amd64\n\nREM Build with version information embedded\ngo build -o !OUTPUT_DIR!\\linkthings-client.win.amd64.exe ^\n    -ldflags \"-X main.Version=!VERSION!\" ^\n    .\n\nif %errorlevel% neq 0 (\n    echo Build failed!\n    exit /b 1\n)\n\necho Build completed successfully!\necho Output: !OUTPUT_DIR!\\linkthings-client.win.amd64.exe\nexit /b 0\n"
+        }
+    ]
+}

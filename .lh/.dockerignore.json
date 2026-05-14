@@ -1,0 +1,18 @@
+{
+    "sourceFile": ".dockerignore",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1778432557626,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1778432557626,
+            "name": "Commit-0",
+            "content": "# Files NOT needed in the Docker build context\n# Only Dockerfile + scripts/ directory are needed\n\n.env\n.env.*\n!.env.example\n\n.git\n.gitignore\n.gitattributes\n\n# Existing project scripts (not part of Docker image)\nssh-vpn-setup.sh\nvpn-connect.sh\n\n# Docs\n*.md\n!README.md\n\n# Editor\n.vscode/\n*.swp\n*.swo\n*~\n"
+        }
+    ]
+}

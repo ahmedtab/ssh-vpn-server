@@ -1,0 +1,14 @@
+{{define "nav"}}
+<nav>
+  <a href="/" class="nav-brand">🔗 VPN Admin</a>
+  <div class="nav-links">
+    <a href="/">Dashboard</a>
+    <a href="/users">Users</a>
+    <a href="/logs">Logs</a>
+    <form method="POST" action="/logout" style="display:inline">
+      <input type="hidden" name="_csrf" value="{{.CSRF}}">
+      <button type="submit" class="nav-logout">Sign out ({{.Session.Username}})</button>
+    </form>
+  </div>
+</nav>
+{{end}}

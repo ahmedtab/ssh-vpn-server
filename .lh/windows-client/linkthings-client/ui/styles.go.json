@@ -1,0 +1,18 @@
+{
+    "sourceFile": "windows-client/linkthings-client/ui/styles.go",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1778682787674,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1778682787674,
+            "name": "Commit-0",
+            "content": "package ui\n\nimport tea \"github.com/charmbracelet/bubbletea\"\n\n// This file contains helper functions and utilities for the UI package\n\n// ImportantStyle returns a style for important text\nfunc ImportantStyle() func(string) string {\n\treturn func(s string) string {\n\t\treturn \"\\033[1;32m\" + s + \"\\033[0m\" // Bold green\n\t}\n}\n\n// WarningStyle returns a style for warning text\nfunc WarningStyle() func(string) string {\n\treturn func(s string) string {\n\t\treturn \"\\033[1;33m\" + s + \"\\033[0m\" // Bold yellow\n\t}\n}\n\n// ErrorStyle returns a style for error text\nfunc ErrorStyle() func(string) string {\n\treturn func(s string) string {\n\t\treturn \"\\033[1;31m\" + s + \"\\033[0m\" // Bold red\n\t}\n}\n"
+        }
+    ]
+}

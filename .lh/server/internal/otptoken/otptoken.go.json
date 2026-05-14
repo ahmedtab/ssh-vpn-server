@@ -1,0 +1,18 @@
+{
+    "sourceFile": "server/internal/otptoken/otptoken.go",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1778724753143,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1778724753143,
+            "name": "Commit-0",
+            "content": "package otptoken\n// Package otptoken manages provisioning OTP tokens for the Windows client.\n// Flow:\n//  1. Windows client calls POST /api/v1/provision with username + SSH pubkey,\n//     signed with an HMAC-SHA256 proof using the shared secret.\n//  2. Server validates the signature, checks rate limits, creates the VPN user\n//     via users.Manager.Add(), and returns tun slot + peer IPs.\n//\n// The \"OTP\" here is a short-lived HMAC-signed request token rather than\n// TOTP (time-based one-time password).  This keeps the client stateless\n// (no TOTP seed needed) while still preventing replay attacks via a\n// nonce + TTL window check.\npackage otptoken\n\nimport (\n\t\"crypto/hmac\"\n\t\"crypto/sha256\"\n\t\"encoding/hex\"\n\t\"fmt\"\n\t\"strconv\"\n\t\"strings\"\n\t\"time\"\n)\n\n// ProvisionRequest is the JSON body sent by the Windows client.\ntype ProvisionRequest struct {\n\tUsername  string `json:\"username\"  binding:\"required\"`\n\tPublicKey string `json:\"public_key\" binding:\"required\"`\n\t// Timestamp is Unix seconds (UTC). Must be within ±TTL of server time.\n\tTimestamp int64  `json:\"timestamp\"  binding:\"required\"`\n\t// Nonce is a random hex string to prevent exact replay within the TTL window.\n\tNonce     string `json:\"nonce\"      binding:\"required\"`\n\t// Signature is HMAC-SHA256(secret, username|pubkey|timestamp|nonce) as lowercase hex.\n\tSignature string `json:\"signature\"  binding:\"required\"`\n}\n\n// Validate checks the request signature and timestamp freshness.\n// secret is the raw bytes of the shared secret.\n// ttl is the allowed age of a request (e.g., 10 minutes).\nfunc Validate(req *ProvisionRequest, secret []byte, ttl time.Duration) error {\n\t// 1. Timestamp freshness\n\treqTime := time.Unix(req.Timestamp, 0).UTC()\n\tdiff := time.Since(reqTime)\n\tif diff < 0 {\n\t\tdiff = -diff\n\t}\n\tif diff > ttl {\n\t\treturn fmt.Errorf(\"request timestamp too old or too far in the future (diff=%s)\", diff)\n\t}\n\n\t// 2. Nonce format (hex, 8–64 chars)\n\tif len(req.Nonce) < 8 || len(req.Nonce) > 64 {\n\t\treturn fmt.Errorf(\"invalid nonce length\")\n\t}\n\n\t// 3. HMAC-SHA256 signature\n\tmessage := strings.Join([]string{\n\t\treq.Username,\n\t\treq.PublicKey,\n\t\tstrconv.FormatInt(req.Timestamp, 10),\n\t\treq.Nonce,\n\t}, \"|\")\n\tmac := hmac.New(sha256.New, secret)\n\tmac.Write([]byte(message))\n\texpected := hex.EncodeToString(mac.Sum(nil))\n\n\tif !hmac.Equal([]byte(expected), []byte(strings.ToLower(req.Signature))) {\n\t\treturn fmt.Errorf(\"invalid signature\")\n\t}\n\treturn nil\n}\n"
+        }
+    ]
+}

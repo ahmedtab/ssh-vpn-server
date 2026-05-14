@@ -1,0 +1,22 @@
+{
+    "sourceFile": "windows-client/linkthings-client/logging/logger.go",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 1,
+            "patches": [
+                {
+                    "date": 1778687581901,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1778714467443,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -9,12 +9,12 @@\n \t\"time\"\n )\n \n var (\n-\tmu       sync.Mutex\n-\tlogger   *log.Logger\n-\tlogFile  *os.File\n-\tlogPath  string\n+\tmu      sync.Mutex\n+\tlogger  *log.Logger\n+\tlogFile *os.File\n+\tlogPath string\n )\n \n // Init sets up file logging under %APPDATA%/LinkThings/logs/client.log.\n func Init() error {\n@@ -46,8 +46,11 @@\n \t}\n \n \tlogFile = f\n \tlogger = log.New(logFile, \"\", log.LstdFlags|log.Lmicroseconds)\n+\tlog.SetOutput(logFile)\n+\tlog.SetFlags(log.LstdFlags | log.Lmicroseconds)\n+\tlog.SetPrefix(\"\")\n \tlogger.Printf(\"session_start version=%s\", time.Now().Format(time.RFC3339))\n \treturn nil\n }\n \n@@ -82,7 +85,10 @@\n \t}\n \tif logFile != nil {\n \t\t_ = logFile.Close()\n \t}\n+\tlog.SetOutput(os.Stderr)\n+\tlog.SetFlags(log.LstdFlags)\n+\tlog.SetPrefix(\"\")\n \tlogger = nil\n \tlogFile = nil\n }\n"
+                }
+            ],
+            "date": 1778687581901,
+            "name": "Commit-0",
+            "content": "package logging\n\nimport (\n\t\"fmt\"\n\t\"log\"\n\t\"os\"\n\t\"path/filepath\"\n\t\"sync\"\n\t\"time\"\n)\n\nvar (\n\tmu       sync.Mutex\n\tlogger   *log.Logger\n\tlogFile  *os.File\n\tlogPath  string\n)\n\n// Init sets up file logging under %APPDATA%/LinkThings/logs/client.log.\nfunc Init() error {\n\tmu.Lock()\n\tdefer mu.Unlock()\n\n\tif logger != nil {\n\t\treturn nil\n\t}\n\n\tappDataDir := os.Getenv(\"APPDATA\")\n\tif appDataDir == \"\" {\n\t\thomeDir, err := os.UserHomeDir()\n\t\tif err != nil {\n\t\t\treturn fmt.Errorf(\"failed to determine app data directory: %w\", err)\n\t\t}\n\t\tappDataDir = filepath.Join(homeDir, \"AppData\", \"Roaming\")\n\t}\n\n\tlogsDir := filepath.Join(appDataDir, \"LinkThings\", \"logs\")\n\tif err := os.MkdirAll(logsDir, 0755); err != nil {\n\t\treturn fmt.Errorf(\"failed to create logs directory: %w\", err)\n\t}\n\n\tlogPath = filepath.Join(logsDir, \"client.log\")\n\tf, err := os.OpenFile(logPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)\n\tif err != nil {\n\t\treturn fmt.Errorf(\"failed to open log file: %w\", err)\n\t}\n\n\tlogFile = f\n\tlogger = log.New(logFile, \"\", log.LstdFlags|log.Lmicroseconds)\n\tlogger.Printf(\"session_start version=%s\", time.Now().Format(time.RFC3339))\n\treturn nil\n}\n\nfunc Infof(format string, args ...any) {\n\twrite(\"INFO\", format, args...)\n}\n\nfunc Errorf(format string, args ...any) {\n\twrite(\"ERROR\", format, args...)\n}\n\nfunc write(level, format string, args ...any) {\n\tmu.Lock()\n\tdefer mu.Unlock()\n\tif logger == nil {\n\t\treturn\n\t}\n\tlogger.Printf(\"[%s] %s\", level, fmt.Sprintf(format, args...))\n}\n\nfunc Path() string {\n\tmu.Lock()\n\tdefer mu.Unlock()\n\treturn logPath\n}\n\nfunc Close() {\n\tmu.Lock()\n\tdefer mu.Unlock()\n\tif logger != nil {\n\t\tlogger.Printf(\"session_end\")\n\t}\n\tif logFile != nil {\n\t\t_ = logFile.Close()\n\t}\n\tlogger = nil\n\tlogFile = nil\n}\n"
+        }
+    ]
+}

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VPN Admin — Users</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+{{template "nav" .}}
+<main>
+  <h2>VPN Users</h2>
+
+  {{if .Error}}
+  <div class="alert alert-error">{{.Error}}</div>
+  {{end}}
+
+  <!-- Add user form -->
+  <details class="add-form-toggle">
+    <summary class="btn">+ Add User</summary>
+    <form method="POST" action="/api/v1/users" class="add-form">
+      <input type="hidden" name="_csrf" value="{{.CSRF}}">
+      <label>Username
+        <input type="text" name="username" placeholder="alice" pattern="[a-zA-Z0-9_-]+" required>
+      </label>
+      <label>SSH Public Key
+        <textarea name="public_key" rows="3" placeholder="ssh-ed25519 AAAA..." required></textarea>
+      </label>
+      <button type="submit" class="btn">Create User</button>
+    </form>
+  </details>
+
+  <!-- User table -->
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Tun</th>
+        <th>Server IP</th>
+        <th>Client IP</th>
+        <th>Status</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+    {{range .Users}}
+    <tr>
+      <td>{{.Username}}</td>
+      <td>tun{{.TunNum}}</td>
+      <td>{{.ServerIP}}</td>
+      <td>{{.ClientIP}}</td>
+      <td><span class="status-badge status-{{.TunStatus}}">{{.TunStatus}}</span></td>
+      <td>{{if not .CreatedAt.IsZero}}{{.CreatedAt.Format "2006-01-02 15:04"}}{{else}}—{{end}}</td>
+      <td>
+        <button class="btn btn-danger btn-sm"
+          onclick="deleteUser('{{.Username}}', '{{$.CSRF}}')"
+          title="Remove user">Delete</button>
+      </td>
+    </tr>
+    {{else}}
+    <tr><td colspan="7" class="empty">No VPN users configured.</td></tr>
+    {{end}}
+    </tbody>
+  </table>
+</main>
+
+<script>
+function deleteUser(name, csrf) {
+  if (!confirm('Delete user "' + name + '"? This cannot be undone.')) return;
+  fetch('/api/v1/users/' + encodeURIComponent(name), {
+    method: 'DELETE',
+    headers: { 'X-CSRF-Token': csrf }
+  }).then(r => {
+    if (r.ok) location.reload();
+    else r.json().then(j => alert('Error: ' + j.error));
+  });
+}
+</script>
+</body>
+</html>

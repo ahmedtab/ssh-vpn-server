@@ -1,0 +1,22 @@
+{
+    "sourceFile": "windows-client/linkthings-client/elevation_nonwindows.go",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 1,
+            "patches": [
+                {
+                    "date": 1778684249699,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1778684319223,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,9 +1,7 @@\n package main\n //go:build !windows\n \n-package main\n-\n func isAdmin() bool {\n \treturn true\n }\n \n"
+                }
+            ],
+            "date": 1778684249699,
+            "name": "Commit-0",
+            "content": "package main\n//go:build !windows\n\npackage main\n\nfunc isAdmin() bool {\n\treturn true\n}\n\nfunc relaunchElevated() bool {\n\treturn false\n}\n\nfunc showElevationRequiredMessage() {}\n"
+        }
+    ]
+}

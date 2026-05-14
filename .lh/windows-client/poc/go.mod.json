@@ -1,0 +1,22 @@
+{
+    "sourceFile": "windows-client/poc/go.mod",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 1,
+            "patches": [
+                {
+                    "date": 1778614399507,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1778624182261,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -3,8 +3,8 @@\n go 1.22\n \n require (\n \tgolang.org/x/crypto v0.25.0\n-\tgolang.zx2c4.com/wintun v0.0.0-20231211153847-12269ad1a550\n+\tgolang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2\n )\n \n-require golang.org/x/sys v0.22.0 // indirect\n+require golang.org/x/sys v0.22.0\n"
+                }
+            ],
+            "date": 1778614399507,
+            "name": "Commit-0",
+            "content": "module ssh-vpn-poc\n\ngo 1.22\n\nrequire (\n\tgolang.org/x/crypto v0.25.0\n\tgolang.zx2c4.com/wintun v0.0.0-20231211153847-12269ad1a550\n)\n\nrequire golang.org/x/sys v0.22.0 // indirect\n"
+        }
+    ]
+}

@@ -3,6 +3,7 @@ package ui
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -10,6 +11,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"linkthings.io/client/api"
 	"linkthings.io/client/config"
 	"linkthings.io/client/keymgmt"
 	"linkthings.io/client/logging"
@@ -28,6 +30,7 @@ const (
 	ScreenSetup
 	ScreenServerForm
 	ScreenDeleteConfirm
+	ScreenProvisioning
 )
 
 type ServerFormMode int
@@ -61,6 +64,9 @@ type MainModel struct {
 	serverFormInput  string
 	deleteServerName string
 	uiNotice         string
+	// provisioning
+	provisionResult string
+	provisionError  string
 }
 
 // NewMainModel creates a new main model
@@ -151,6 +157,19 @@ func (m *MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.screen = ScreenServerSelect
 		m.connectionLog = []string{"Disconnected"}
+		return m, nil
+
+	case ProvisioningMsg:
+		if msg.Error != nil {
+			m.provisionError = msg.Error.Error()
+			m.provisionResult = ""
+		} else {
+			m.provisionError = ""
+			m.provisionResult = fmt.Sprintf(
+				"✓ Provisioned!\n  Tunnel #%d\n  Server: %s\n  Client: %s",
+				msg.TunNum, msg.ServerIP, msg.ClientIP,
+			)
+		}
 		return m, nil
 	}
 
@@ -246,6 +265,23 @@ func (m *MainModel) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.errorMessage = ""
 		}
 
+	case "p":
+		if m.screen == ScreenServerSelect {
+			servers := m.configManager.GetServers()
+			if m.serverListIndex < len(servers) {
+				s := servers[m.serverListIndex]
+				if s.ProvisionURL == "" || s.OTPSharedSecret == "" {
+					m.uiNotice = "Provisioning not configured for this server (set ProvisionURL + OTPSharedSecret)"
+					return m, nil
+				}
+				m.selectedServer = s.Name
+				m.provisionResult = ""
+				m.provisionError = ""
+				m.screen = ScreenProvisioning
+				return m, cmdProvision(s, m.keyManager)
+			}
+		}
+
 	case "k":
 		if m.screen == ScreenServerSelect {
 			m.pubKeyContent = m.keyManager.GetPublicKeyContent()
@@ -294,6 +330,8 @@ func (m *MainModel) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case "b", "esc":
 		if m.screen == ScreenSetup {
 			m.screen = ScreenServerSelect
+		} else if m.screen == ScreenProvisioning {
+			m.screen = ScreenServerSelect
 		}
 
 	case "d":
@@ -326,6 +364,8 @@ func (m *MainModel) View() string {
 		return m.viewServerForm()
 	case ScreenDeleteConfirm:
 		return m.viewDeleteConfirm()
+	case ScreenProvisioning:
+		return m.viewProvisioning()
 	default:
 		return "Unknown screen"
 	}
@@ -675,6 +715,15 @@ type DisconnectMsg struct {
 	Error error
 }
 
+// ProvisioningMsg is sent when the OTP provisioning request completes.
+type ProvisioningMsg struct {
+	Server   string
+	TunNum   int
+	ServerIP string
+	ClientIP string
+	Error    error
+}
+
 type statsMsg struct {
 	stats tunnel.Stats
 }
@@ -805,4 +854,60 @@ func userFacingError(err error) string {
 		return "connection timeout"
 	}
 	return err.Error()
+}
+
+// cmdProvision sends an OTP provisioning request to the control plane server.
+func cmdProvision(server config.ServerConfig, keyMgr *keymgmt.KeyManager) tea.Cmd {
+	return func() tea.Msg {
+		pubKey := keyMgr.GetPublicKeyContent()
+		if pubKey == "" {
+			return ProvisioningMsg{
+				Server: server.Name,
+				Error:  fmt.Errorf("SSH public key not found — run 'k' to generate/view key first"),
+			}
+		}
+		// Derive username from OS username (same approach as SSH connection)
+		username := os.Getenv("USERNAME")
+		if username == "" {
+			username = os.Getenv("USER")
+		}
+		if username == "" {
+			username = "vpnuser"
+		}
+
+		resp, err := api.Provision(server.ProvisionURL, username, pubKey, server.OTPSharedSecret)
+		if err != nil {
+			logging.Errorf("provision_failed server=%s err=%v", server.Name, err)
+			return ProvisioningMsg{Server: server.Name, Error: err}
+		}
+		logging.Infof("provision_success server=%s tun=%d", server.Name, resp.TunNum)
+		return ProvisioningMsg{
+			Server:   server.Name,
+			TunNum:   resp.TunNum,
+			ServerIP: resp.ServerIP,
+			ClientIP: resp.ClientIP,
+		}
+	}
+}
+
+// viewProvisioning renders the OTP provisioning status screen.
+func (m *MainModel) viewProvisioning() string {
+	title := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(lipgloss.Color("6")).
+		Render("🔐 Provisioning — " + m.selectedServer)
+
+	var body string
+	switch {
+	case m.provisionError != "":
+		body = lipgloss.NewStyle().Foreground(lipgloss.Color("9")).Render("✗ Error: "+m.provisionError) +
+			"\n\n[Press Esc or b to go back]"
+	case m.provisionResult != "":
+		body = lipgloss.NewStyle().Foreground(lipgloss.Color("10")).Render(m.provisionResult) +
+			"\n\n[Press Esc or b to go back]"
+	default:
+		body = "Sending provisioning request…"
+	}
+
+	return title + "\n\n" + body + "\n"
 }

@@ -1,0 +1,18 @@
+{
+    "sourceFile": "server/internal/pamauth/pamauth.go",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1778724753143,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1778724753143,
+            "name": "Commit-0",
+            "content": "package pamauth\n// Package pamauth authenticates Linux users via PAM.\n// This allows the web admin to log in using existing OS credentials —\n// no separate password database is needed.\npackage pamauth\n\nimport (\n\t\"fmt\"\n\n\t\"github.com/msteinert/pam/v2\"\n)\n\n// Authenticate verifies username/password against the system PAM stack.\n// Uses the \"login\" PAM service which respects /etc/pam.d/login.\n// Returns nil on success, error on failure.\nfunc Authenticate(username, password string) error {\n\tif username == \"\" || password == \"\" {\n\t\treturn fmt.Errorf(\"username and password are required\")\n\t}\n\n\ttx, err := pam.StartFunc(\"login\", username, func(s pam.Style, msg string) (string, error) {\n\t\tswitch s {\n\t\tcase pam.PromptEchoOff:\n\t\t\treturn password, nil\n\t\tcase pam.PromptEchoOn:\n\t\t\treturn username, nil\n\t\tcase pam.ErrorMsg, pam.TextInfo:\n\t\t\treturn \"\", nil\n\t\tdefault:\n\t\t\treturn \"\", fmt.Errorf(\"unhandled PAM style: %d\", s)\n\t\t}\n\t})\n\tif err != nil {\n\t\treturn fmt.Errorf(\"pam start: %w\", err)\n\t}\n\n\tif err := tx.Authenticate(0); err != nil {\n\t\treturn fmt.Errorf(\"authentication failed\")\n\t}\n\treturn nil\n}\n"
+        }
+    ]
+}

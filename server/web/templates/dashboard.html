@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VPN Admin — Dashboard</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+{{template "nav" .}}
+<main>
+  <h2>Dashboard</h2>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <span class="stat-label">VPN Users</span>
+      <span class="stat-value">{{.UserCount}}</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">SSH Port</span>
+      <span class="stat-value">2222</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Status</span>
+      <span class="stat-value status-ok">Running</span>
+    </div>
+  </div>
+  <div class="quick-links">
+    <a href="/users" class="btn">Manage Users</a>
+    <a href="/logs" class="btn btn-secondary">View Logs</a>
+  </div>
+</main>
+</body>
+</html>
