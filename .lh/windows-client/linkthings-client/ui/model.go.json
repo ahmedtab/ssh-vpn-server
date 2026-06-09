@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 15,
+            "activePatchIndex": 16,
             "patches": [
                 {
                     "date": 1778682787674,
@@ -68,6 +68,10 @@
                 {
                     "date": 1780963036019,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -301,8 +301,9 @@\n \t\t\t\tLANSubnet:  \"192.168.4.0/24\",\n \t\t\t\tSSHTunnel:  0,\n \t\t\t\tMTU:        \"1340\",\n \t\t\t\tFullTunnel: true,\n+\t\t\t\tDNS: \"1.1.1.1,8.8.8.8\"\n \t\t\t})\n \t\t}\n \n \tcase \"e\":\n"
+                },
+                {
+                    "date": 1780963652830,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -301,9 +301,9 @@\n \t\t\t\tLANSubnet:  \"192.168.4.0/24\",\n \t\t\t\tSSHTunnel:  0,\n \t\t\t\tMTU:        \"1340\",\n \t\t\t\tFullTunnel: true,\n-\t\t\t\tDNS: \"1.1.1.1,8.8.8.8\"\n+\t\t\t\tDNS:        \"1.1.1.1,8.8.8.8\",\n \t\t\t})\n \t\t}\n \n \tcase \"e\":\n@@ -520,13 +520,29 @@\n \tvar body strings.Builder\n \tbody.WriteString(\"Edit fields then press Ctrl+S to save.\\n\\n\")\n \tfor i := range labels {\n \t\tprefix := \"  \"\n+\t\tdisplayValue := values[i]\n+\t\t\n+\t\t// Special handling for FullTunnel toggle\n+\t\tif i == 7 {\n+\t\t\tif m.serverForm.FullTunnel {\n+\t\t\t\tdisplayValue = lipgloss.NewStyle().Foreground(lipgloss.Color(\"2\")).Render(\"[X] ON\")\n+\t\t\t} else {\n+\t\t\t\tdisplayValue = lipgloss.NewStyle().Foreground(lipgloss.Color(\"8\")).Render(\"[ ] OFF\")\n+\t\t\t}\n+\t\t\tif i == m.serverFormIndex {\n+\t\t\t\tdisplayValue += lipgloss.NewStyle().Foreground(lipgloss.Color(\"3\")).Render(\" (Space to toggle)\")\n+\t\t\t}\n+\t\t}\n+\t\t\n \t\tif i == m.serverFormIndex {\n \t\t\tprefix = lipgloss.NewStyle().Foreground(lipgloss.Color(\"2\")).Render(\"> \")\n-\t\t\tvalues[i] = m.serverFormInput\n+\t\t\tif i != 7 { // Don't show input for toggle\n+\t\t\t\tdisplayValue = m.serverFormInput\n+\t\t\t}\n \t\t}\n-\t\tbody.WriteString(fmt.Sprintf(\"%s%s: %s\\n\", prefix, labels[i], values[i]))\n+\t\tbody.WriteString(fmt.Sprintf(\"%s%s: %s\\n\", prefix, labels[i], displayValue))\n \t}\n \tbody.WriteString(\"\\nControls: Enter/Tab (next) | Up/Down (move) | Ctrl+S (save) | Esc (cancel)\\n\")\n \n \treturn lipgloss.JoinVertical(lipgloss.Top, title, \"\", body.String())\n@@ -657,24 +673,42 @@\n \tcase \"up\":\n \t\tm.moveServerFormField(-1)\n \t\treturn m, nil\n \tcase \"down\", \"enter\", \"tab\":\n+\t\t// Special handling for FullTunnel toggle on Enter\n+\t\tif m.serverFormIndex == 7 && msg.String() == \"enter\" {\n+\t\t\tm.serverForm.FullTunnel = !m.serverForm.FullTunnel\n+\t\t\treturn m, nil\n+\t\t}\n \t\tm.moveServerFormField(1)\n \t\treturn m, nil\n+\tcase \" \": // Space bar toggles FullTunnel\n+\t\tif m.serverFormIndex == 7 {\n+\t\t\tm.serverForm.FullTunnel = !m.serverForm.FullTunnel\n+\t\t\treturn m, nil\n+\t\t}\n+\t\t// For other fields, space adds a space character\n+\t\tm.serverFormInput += \" \"\n+\t\treturn m, nil\n \tcase \"ctrl+s\":\n \t\tif err := m.saveServerForm(); err != nil {\n \t\t\tm.uiNotice = err.Error()\n \t\t}\n \t\treturn m, nil\n \tcase \"backspace\":\n+\t\t// Don't allow backspace on FullTunnel toggle\n+\t\tif m.serverFormIndex == 7 {\n+\t\t\treturn m, nil\n+\t\t}\n \t\tr := []rune(m.serverFormInput)\n \t\tif len(r) > 0 {\n \t\t\tm.serverFormInput = string(r[:len(r)-1])\n \t\t}\n \t\treturn m, nil\n \t}\n \n-\tif msg.Type == tea.KeyRunes {\n+\t// Don't allow text input on FullTunnel toggle field\n+\tif msg.Type == tea.KeyRunes && m.serverFormIndex != 7 {\n \t\tm.serverFormInput += string(msg.Runes)\n \t\treturn m, nil\n \t}\n \treturn m, nil\n"
                 }
             ],
             "date": 1778682787674,

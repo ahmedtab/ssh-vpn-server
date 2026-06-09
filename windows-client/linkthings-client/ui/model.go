@@ -521,11 +521,27 @@ func (m *MainModel) viewServerForm() string {
 	body.WriteString("Edit fields then press Ctrl+S to save.\n\n")
 	for i := range labels {
 		prefix := "  "
+		displayValue := values[i]
+
+		// Special handling for FullTunnel toggle
+		if i == 7 {
+			if m.serverForm.FullTunnel {
+				displayValue = lipgloss.NewStyle().Foreground(lipgloss.Color("2")).Render("[X] ON")
+			} else {
+				displayValue = lipgloss.NewStyle().Foreground(lipgloss.Color("8")).Render("[ ] OFF")
+			}
+			if i == m.serverFormIndex {
+				displayValue += lipgloss.NewStyle().Foreground(lipgloss.Color("3")).Render(" (Space to toggle)")
+			}
+		}
+
 		if i == m.serverFormIndex {
 			prefix = lipgloss.NewStyle().Foreground(lipgloss.Color("2")).Render("> ")
-			values[i] = m.serverFormInput
+			if i != 7 { // Don't show input for toggle
+				displayValue = m.serverFormInput
+			}
 		}
-		body.WriteString(fmt.Sprintf("%s%s: %s\n", prefix, labels[i], values[i]))
+		body.WriteString(fmt.Sprintf("%s%s: %s\n", prefix, labels[i], displayValue))
 	}
 	body.WriteString("\nControls: Enter/Tab (next) | Up/Down (move) | Ctrl+S (save) | Esc (cancel)\n")
 
@@ -658,7 +674,20 @@ func (m *MainModel) handleServerFormKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.moveServerFormField(-1)
 		return m, nil
 	case "down", "enter", "tab":
+		// Special handling for FullTunnel toggle on Enter
+		if m.serverFormIndex == 7 && msg.String() == "enter" {
+			m.serverForm.FullTunnel = !m.serverForm.FullTunnel
+			return m, nil
+		}
 		m.moveServerFormField(1)
+		return m, nil
+	case " ": // Space bar toggles FullTunnel
+		if m.serverFormIndex == 7 {
+			m.serverForm.FullTunnel = !m.serverForm.FullTunnel
+			return m, nil
+		}
+		// For other fields, space adds a space character
+		m.serverFormInput += " "
 		return m, nil
 	case "ctrl+s":
 		if err := m.saveServerForm(); err != nil {
@@ -666,6 +695,10 @@ func (m *MainModel) handleServerFormKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 	case "backspace":
+		// Don't allow backspace on FullTunnel toggle
+		if m.serverFormIndex == 7 {
+			return m, nil
+		}
 		r := []rune(m.serverFormInput)
 		if len(r) > 0 {
 			m.serverFormInput = string(r[:len(r)-1])
@@ -673,7 +706,8 @@ func (m *MainModel) handleServerFormKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
-	if msg.Type == tea.KeyRunes {
+	// Don't allow text input on FullTunnel toggle field
+	if msg.Type == tea.KeyRunes && m.serverFormIndex != 7 {
 		m.serverFormInput += string(msg.Runes)
 		return m, nil
 	}
