@@ -425,6 +425,37 @@ func (m *MainModel) viewConnected() string {
 		Foreground(lipgloss.Color("2")).
 		Render("✓ Connected to: " + m.selectedServer)
 
+	var selectedServer *config.ServerConfig = m.configManager.GetServer(m.selectedServer)
+
+	title += "\n" + lipgloss.NewStyle().
+		Bold(true).
+		Foreground(lipgloss.Color("4")).
+		Render("Gateway	: "+selectedServer.Gateway)
+	title += "\n" + lipgloss.NewStyle().
+		Bold(true).
+		Foreground(lipgloss.Color("4")).
+		Render("MTU		: "+selectedServer.MTU)
+	title += "\n" + lipgloss.NewStyle().
+		Bold(true).
+		Foreground(lipgloss.Color("4")).
+		Render("LAN subnet : "+selectedServer.LANSubnet)
+	title += "\n" + lipgloss.NewStyle().
+		Bold(true).
+		Foreground(lipgloss.Color("4")).
+		Render("DNS		: "+selectedServer.DNS)
+
+	if selectedServer.FullTunnel {
+		title += "\n" + lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("4")).
+			Render("FullTunnel ✓")
+	} else {
+		title += "\n" + lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("8")).
+			Render("FullTunnel ✗")
+	}
+
 	statsContent := "Tunnel activity:\n"
 	statsContent += fmt.Sprintf("  Connected for: %s\n", formatConnectedFor(m.stats.ConnectedAt))
 	statsContent += fmt.Sprintf("  Received: %s\n", formatBytes(m.stats.RxBytes))
@@ -677,6 +708,7 @@ func (m *MainModel) handleServerFormKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		// Special handling for FullTunnel toggle on Enter
 		if m.serverFormIndex == 7 && msg.String() == "enter" {
 			m.serverForm.FullTunnel = !m.serverForm.FullTunnel
+			m.serverFormInput = strconv.FormatBool(m.serverForm.FullTunnel)
 			return m, nil
 		}
 		m.moveServerFormField(1)
@@ -684,6 +716,7 @@ func (m *MainModel) handleServerFormKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case " ": // Space bar toggles FullTunnel
 		if m.serverFormIndex == 7 {
 			m.serverForm.FullTunnel = !m.serverForm.FullTunnel
+			m.serverFormInput = strconv.FormatBool(m.serverForm.FullTunnel)
 			return m, nil
 		}
 		// For other fields, space adds a space character
