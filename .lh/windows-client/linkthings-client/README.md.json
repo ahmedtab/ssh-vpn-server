@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 2,
+            "activePatchIndex": 3,
             "patches": [
                 {
                     "date": 1778682787674,
@@ -16,6 +16,10 @@
                 {
                     "date": 1778711842724,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -58,18 +58,20 @@\n       \"localIP\": \"10.10.11.1/30\",\n       \"remoteIP\": \"10.10.11.2\",\n       \"lanSubnet\": \"192.168.4.0/24\",\n       \"sshTunnel\": 0,\n-      \"mtu\": \"1340\"\n+      \"mtu\": \"1340\",\n+      \"fullTunnel\": true\n     },\n     {\n       \"name\": \"Staging-DC2\",\n       \"gateway\": \"staging.example.com:2255\",\n       \"localIP\": \"10.10.11.1/30\",\n       \"remoteIP\": \"10.10.11.2\",\n       \"lanSubnet\": \"192.168.5.0/24\",\n       \"sshTunnel\": 1,\n-      \"mtu\": \"1500\"\n+      \"mtu\": \"1500\",\n+      \"fullTunnel\": false\n     }\n   ]\n }\n ```\n@@ -82,8 +84,9 @@\n - **remoteIP**: Remote tunnel endpoint IP (e.g., `10.10.11.2`)\n - **lanSubnet**: LAN subnet to route through the tunnel (e.g., `192.168.4.0/24`)\n - **sshTunnel**: Tunnel slot number (0-15, default 0 for multi-user support) — use different slots for different users\n - **mtu**: MTU value in bytes (default `1340`, adjust for your network)\n+- **fullTunnel**: Route all internet through VPN (default `true`). When enabled, `curl ifconfig.me` returns server IP. When `false`, only LAN subnet routes through tunnel (split tunnel)\n \n ## Usage\n \n 1. Run the application with administrator privileges\n"
+                },
+                {
+                    "date": 1780962593453,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -59,9 +59,10 @@\n       \"remoteIP\": \"10.10.11.2\",\n       \"lanSubnet\": \"192.168.4.0/24\",\n       \"sshTunnel\": 0,\n       \"mtu\": \"1340\",\n-      \"fullTunnel\": true\n+      \"fullTunnel\": true,\n+      \"dns\": \"8.8.8.8,1.1.1.1\"\n     },\n     {\n       \"name\": \"Staging-DC2\",\n       \"gateway\": \"staging.example.com:2255\",\n@@ -85,8 +86,9 @@\n - **lanSubnet**: LAN subnet to route through the tunnel (e.g., `192.168.4.0/24`)\n - **sshTunnel**: Tunnel slot number (0-15, default 0 for multi-user support) — use different slots for different users\n - **mtu**: MTU value in bytes (default `1340`, adjust for your network)\n - **fullTunnel**: Route all internet through VPN (default `true`). When enabled, `curl ifconfig.me` returns server IP. When `false`, only LAN subnet routes through tunnel (split tunnel)\n+- **dns**: (Optional) Comma-separated DNS server IPs applied only to the tunnel adapter (e.g., `\"8.8.8.8,1.1.1.1\"`). Leave empty to skip DNS configuration. Does not affect other network interfaces.\n \n ## Usage\n \n 1. Run the application with administrator privileges\n"
                 }
             ],
             "date": 1778682787674,

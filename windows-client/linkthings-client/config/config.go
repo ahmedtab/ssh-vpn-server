@@ -10,13 +10,14 @@ import (
 // ServerConfig represents a VPN server configuration
 type ServerConfig struct {
 	Name       string `json:"name"`
-	Gateway    string `json:"gateway"`    // host:port format
-	LocalIP    string `json:"localIP"`    // Local TUN adapter IP (e.g., 10.10.11.1/30)
-	RemoteIP   string `json:"remoteIP"`   // Remote tunnel IP (e.g., 10.10.11.2)
-	LANSubnet  string `json:"lanSubnet"`  // LAN subnet to route through tunnel (e.g., 192.168.4.0/24)
-	SSHTunnel  int    `json:"sshTunnel"`  // Tunnel slot number (0-15, default 0 for multi-user support)
-	MTU        string `json:"mtu"`        // MTU value (default "1340")
-	FullTunnel bool   `json:"fullTunnel"` // Route all internet through VPN (default true)
+	Gateway    string `json:"gateway"`       // host:port format
+	LocalIP    string `json:"localIP"`       // Local TUN adapter IP (e.g., 10.10.11.1/30)
+	RemoteIP   string `json:"remoteIP"`      // Remote tunnel IP (e.g., 10.10.11.2)
+	LANSubnet  string `json:"lanSubnet"`     // LAN subnet to route through tunnel (e.g., 192.168.4.0/24)
+	SSHTunnel  int    `json:"sshTunnel"`     // Tunnel slot number (0-15, default 0 for multi-user support)
+	MTU        string `json:"mtu"`           // MTU value (default "1340")
+	FullTunnel bool   `json:"fullTunnel"`    // Route all internet through VPN (default true)
+	DNS        string `json:"dns,omitempty"` // Comma-separated DNS server IPs applied to tunnel adapter only (e.g., "8.8.8.8,1.1.1.1")
 
 	// OTP provisioning (optional — used by the automatic provisioning flow)
 	// ProvisionURL is the full URL of the control plane provisioning endpoint,

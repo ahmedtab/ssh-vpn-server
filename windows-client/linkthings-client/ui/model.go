@@ -302,6 +302,7 @@ func (m *MainModel) handleKeyPress(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 				SSHTunnel:  0,
 				MTU:        "1340",
 				FullTunnel: true,
+				DNS:        "1.1.1.1,8.8.8.8",
 			})
 		}
 
@@ -503,7 +504,7 @@ func (m *MainModel) viewServerForm() string {
 	}
 	title := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("6")).Render("🛠 " + titleText)
 
-	labels := []string{"Name", "Gateway", "LocalIP", "RemoteIP", "LANSubnet", "SSHTunnel", "MTU", "FullTunnel"}
+	labels := []string{"Name", "Gateway", "LocalIP", "RemoteIP", "LANSubnet", "SSHTunnel", "MTU", "FullTunnel", "DNS"}
 	values := []string{
 		m.serverForm.Name,
 		m.serverForm.Gateway,
@@ -513,6 +514,7 @@ func (m *MainModel) viewServerForm() string {
 		strconv.Itoa(m.serverForm.SSHTunnel),
 		m.serverForm.MTU,
 		strconv.FormatBool(m.serverForm.FullTunnel),
+		m.serverForm.DNS,
 	}
 
 	var body strings.Builder
@@ -564,6 +566,8 @@ func (m *MainModel) getServerFormField(index int) string {
 		return m.serverForm.MTU
 	case 7:
 		return strconv.FormatBool(m.serverForm.FullTunnel)
+	case 8:
+		return m.serverForm.DNS
 	default:
 		return ""
 	}
@@ -596,6 +600,8 @@ func (m *MainModel) setServerFormField(index int, value string) error {
 			return fmt.Errorf("FullTunnel must be true or false")
 		}
 		m.serverForm.FullTunnel = v
+	case 8:
+		m.serverForm.DNS = value
 	}
 	return nil
 }
@@ -605,7 +611,7 @@ func (m *MainModel) moveServerFormField(delta int) {
 		m.uiNotice = err.Error()
 		return
 	}
-	count := 8
+	count := 9
 	m.serverFormIndex = (m.serverFormIndex + delta + count) % count
 	m.serverFormInput = m.getServerFormField(m.serverFormIndex)
 	m.uiNotice = ""

@@ -60,7 +60,8 @@ Server configuration is stored in: `%APPDATA%\LinkThings\servers.json`
       "lanSubnet": "192.168.4.0/24",
       "sshTunnel": 0,
       "mtu": "1340",
-      "fullTunnel": true
+      "fullTunnel": true,
+      "dns": "8.8.8.8,1.1.1.1"
     },
     {
       "name": "Staging-DC2",
@@ -86,6 +87,7 @@ Server configuration is stored in: `%APPDATA%\LinkThings\servers.json`
 - **sshTunnel**: Tunnel slot number (0-15, default 0 for multi-user support) — use different slots for different users
 - **mtu**: MTU value in bytes (default `1340`, adjust for your network)
 - **fullTunnel**: Route all internet through VPN (default `true`). When enabled, `curl ifconfig.me` returns server IP. When `false`, only LAN subnet routes through tunnel (split tunnel)
+- **dns**: (Optional) Comma-separated DNS server IPs applied only to the tunnel adapter (e.g., `"8.8.8.8,1.1.1.1"`). Leave empty to skip DNS configuration. Does not affect other network interfaces.
 
 ## Usage
 

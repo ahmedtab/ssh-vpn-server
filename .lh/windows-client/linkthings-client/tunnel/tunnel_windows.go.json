@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 12,
+            "activePatchIndex": 13,
             "patches": [
                 {
                     "date": 1778700503861,
@@ -56,6 +56,10 @@
                 {
                     "date": 1778721054882,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -288,9 +288,15 @@\n \t\t\tif at.closed.Load() {\n \t\t\t\treturn\n \t\t\t}\n \t\t\t_, _ = windows.WaitForSingleObject(readWait, 500)\n+\t\t\tif at.closed.Load() {\n+\t\t\t\treturn\n+\t\t\t}\n \t\t\tfor {\n+\t\t\t\tif at.closed.Load() {\n+\t\t\t\t\treturn\n+\t\t\t\t}\n \t\t\t\tpkt, err := at.session.ReceivePacket()\n \t\t\t\tif err != nil {\n \t\t\t\t\tif err == windows.ERROR_NO_MORE_ITEMS {\n \t\t\t\t\t\tbreak\n@@ -330,8 +336,11 @@\n \t\t\t\tcontinue\n \t\t\t}\n \t\t\tipPkt := buf[4:n]\n \t\t\tat.rxBytes.Add(uint64(len(ipPkt)))\n+\t\t\tif at.closed.Load() {\n+\t\t\t\treturn\n+\t\t\t}\n \t\t\tdst, err := at.session.AllocateSendPacket(len(ipPkt))\n \t\t\tif err != nil {\n \t\t\t\treturn\n \t\t\t}\n"
+                },
+                {
+                    "date": 1780962593433,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -124,8 +124,17 @@\n \tif err := runCommand(\"netsh\", \"interface\", \"ipv4\", \"set\", \"subinterface\", adapterName, \"mtu=\"+tunMTU, \"store=active\"); err != nil {\n \t\treturn fmt.Errorf(\"set adapter MTU failed: %w\", err)\n \t}\n \n+\t// Apply DNS servers to the tunnel adapter only (if configured)\n+\tif dnsServers := parseDNSServers(server.DNS); len(dnsServers) > 0 {\n+\t\tif err := setAdapterDNS(adapterName, dnsServers); err != nil {\n+\t\t\tlogging.Errorf(\"set_adapter_dns_failed adapter=%s err=%v\", adapterName, err)\n+\t\t} else {\n+\t\t\tlogging.Infof(\"set_adapter_dns_ok adapter=%s dns=%v\", adapterName, dnsServers)\n+\t\t}\n+\t}\n+\n \ttunnelIfIndex, ifErr := getInterfaceIndexByName(adapterName)\n \tif ifErr != nil {\n \t\tlogging.Errorf(\"could not resolve tunnel interface index for %s: %v\", adapterName, ifErr)\n \t} else {\n@@ -494,8 +503,44 @@\n \tguid.Data4[0] = (guid.Data4[0] & 0x3f) | 0x80\n \treturn guid\n }\n \n+// parseDNSServers splits a comma-separated DNS string into individual IP strings.\n+func parseDNSServers(dns string) []string {\n+\tif dns == \"\" {\n+\t\treturn nil\n+\t}\n+\tparts := strings.Split(dns, \",\")\n+\tservers := make([]string, 0, len(parts))\n+\tfor _, p := range parts {\n+\t\tp = strings.TrimSpace(p)\n+\t\tif p != \"\" {\n+\t\t\tservers = append(servers, p)\n+\t\t}\n+\t}\n+\treturn servers\n+}\n+\n+// setAdapterDNS applies DNS servers to the named network adapter only (not OS-wide).\n+func setAdapterDNS(adapterName string, servers []string) error {\n+\tif len(servers) == 0 {\n+\t\treturn nil\n+\t}\n+\t// Set the primary DNS server with static assignment\n+\tif err := runCommand(\"netsh\", \"interface\", \"ipv4\", \"set\", \"dnsservers\",\n+\t\t\"name=\"+adapterName, \"static\", servers[0], \"primary\"); err != nil {\n+\t\treturn fmt.Errorf(\"set primary DNS failed: %w\", err)\n+\t}\n+\t// Add additional DNS servers\n+\tfor i := 1; i < len(servers); i++ {\n+\t\tif err := runCommand(\"netsh\", \"interface\", \"ipv4\", \"add\", \"dnsservers\",\n+\t\t\t\"name=\"+adapterName, servers[i], fmt.Sprintf(\"index=%d\", i+1)); err != nil {\n+\t\t\tlogging.Errorf(\"add_dns_server_failed adapter=%s index=%d err=%v\", adapterName, i+1, err)\n+\t\t}\n+\t}\n+\treturn nil\n+}\n+\n func runCommand(name string, args ...string) error {\n \tout, err := exec.Command(name, args...).CombinedOutput()\n \tif err != nil {\n \t\treturn fmt.Errorf(\"%s %v failed: %w (%s)\", name, args, err, strings.TrimSpace(string(out)))\n"
                 }
             ],
             "date": 1778700503861,

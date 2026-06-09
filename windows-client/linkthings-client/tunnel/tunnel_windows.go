@@ -125,6 +125,15 @@ func (tm *TunnelManager) Connect(server config.ServerConfig, signer ssh.Signer) 
 		return fmt.Errorf("set adapter MTU failed: %w", err)
 	}
 
+	// Apply DNS servers to the tunnel adapter only (if configured)
+	if dnsServers := parseDNSServers(server.DNS); len(dnsServers) > 0 {
+		if err := setAdapterDNS(adapterName, dnsServers); err != nil {
+			logging.Errorf("set_adapter_dns_failed adapter=%s err=%v", adapterName, err)
+		} else {
+			logging.Infof("set_adapter_dns_ok adapter=%s dns=%v", adapterName, dnsServers)
+		}
+	}
+
 	tunnelIfIndex, ifErr := getInterfaceIndexByName(adapterName)
 	if ifErr != nil {
 		logging.Errorf("could not resolve tunnel interface index for %s: %v", adapterName, ifErr)
@@ -493,6 +502,42 @@ func deterministicAdapterGUID(adapterName string) windows.GUID {
 	guid.Data3 = (guid.Data3 & 0x0fff) | 0x4000
 	guid.Data4[0] = (guid.Data4[0] & 0x3f) | 0x80
 	return guid
+}
+
+// parseDNSServers splits a comma-separated DNS string into individual IP strings.
+func parseDNSServers(dns string) []string {
+	if dns == "" {
+		return nil
+	}
+	parts := strings.Split(dns, ",")
+	servers := make([]string, 0, len(parts))
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		if p != "" {
+			servers = append(servers, p)
+		}
+	}
+	return servers
+}
+
+// setAdapterDNS applies DNS servers to the named network adapter only (not OS-wide).
+func setAdapterDNS(adapterName string, servers []string) error {
+	if len(servers) == 0 {
+		return nil
+	}
+	// Set the primary DNS server with static assignment
+	if err := runCommand("netsh", "interface", "ipv4", "set", "dnsservers",
+		"name="+adapterName, "static", servers[0], "primary"); err != nil {
+		return fmt.Errorf("set primary DNS failed: %w", err)
+	}
+	// Add additional DNS servers
+	for i := 1; i < len(servers); i++ {
+		if err := runCommand("netsh", "interface", "ipv4", "add", "dnsservers",
+			"name="+adapterName, servers[i], fmt.Sprintf("index=%d", i+1)); err != nil {
+			logging.Errorf("add_dns_server_failed adapter=%s index=%d err=%v", adapterName, i+1, err)
+		}
+	}
+	return nil
 }
 
 func runCommand(name string, args ...string) error {
