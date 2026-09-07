@@ -4,14 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository layout
 
-This repo is the **Windows client** half of a larger SSH-VPN system (a separate server-side control plane exists elsewhere and is referenced only via its API contract). Two Go modules live here, independently:
+This repo is the **client** half of a larger SSH-VPN system (a separate server-side control plane exists elsewhere and is referenced only via its API contract). Several Go modules live here, independently:
 
-- `linkthings-client/` — the real, shipping product. A Windows-only TUI SSH VPN client (module `linkthings.io/client`).
-- `poc/` — a standalone, throwaway proof-of-concept (`main.go`, Windows-only build tag) that predates `linkthings-client`. Treat it as reference/scratch code, not something to extend; new work goes in `linkthings-client/`.
+- `linkthings-client-v2/` — **the actively developed client, start here for new work.** A cross-platform (Windows + Linux) TUI SSH VPN client (module `linkthings.io/client-v2`), forked from `linkthings-client/` and being refactored onto a `Platform`/`Elevator`/`Clipboard` interface seam so each OS implements a small set of primitives instead of duplicating the SSH/routing/framing orchestration per platform. See `linkthings-client-v2/CLAUDE.md` (once added) for its own architecture docs — don't assume the parent sections below (written for the legacy client) describe it once the refactor lands.
+- `linkthings-client/` — **frozen legacy v0.2, Windows-only. Do not modify — kept for reference only.** The original shipping product (module `linkthings.io/client`) that `linkthings-client-v2/` was forked from. All new work, including Linux support, happens in `linkthings-client-v2/` instead.
+- `poc/` — a standalone, throwaway proof-of-concept (`main.go`, Windows-only build tag) that predates `linkthings-client`. Treat it as reference/scratch code, not something to extend.
 - `poc-connect.ps1` — PowerShell launcher that builds/runs `poc/poc.exe`.
 - `wintun/` — vendored Wintun driver headers/binaries (`wintun.h`, prebuilt DLLs), not Go source.
 
-All commands below assume you're working in `linkthings-client/` unless noted.
+The **Commands** and **Architecture** sections below describe the frozen `linkthings-client/` (still useful as ground truth for what `linkthings-client-v2/` was forked from and is being refactored away from). All commands assume you're working in `linkthings-client/` unless noted.
 
 ## Commands
 

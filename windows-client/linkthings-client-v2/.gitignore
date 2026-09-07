@@ -1,0 +1,36 @@
+# Build artifacts
+dist/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Binaries
+bin/
+
+# Go build cache
+.cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+*.tmp
+
+# Test coverage
+*.out
+coverage.txt
+
+# Environment
+.env
+.env.local
+
+# SSH keys (don't commit private keys)
+.ssh/
+!.ssh/.gitkeep
