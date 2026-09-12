@@ -12,7 +12,8 @@ service layer, design source of truth, known caveats).
 - Node.js + npm (frontend is Vue 3 + Vite + Tailwind v4)
 - The [Wails v3 CLI](https://v3.wails.io/) (`wails3`) - see [Installing the Wails v3 CLI](#installing-the-wails-v3-cli) below
 - Windows 10/11 (x64), administrator privileges - **or** -
-- Linux (x64), root or an elevation path (`pkexec`-capable desktop session); on Linux you additionally need:
+- Linux (x64), a `pkexec`-capable desktop session for the one-time `CAP_NET_ADMIN` capability grant
+  (see "Debugging" below - the app never runs as root on Linux); on Linux you additionally need:
   - Ubuntu 24.04+/Debian 13+: `libgtk-4-dev` + `libwebkitgtk-6.0-dev`
   - Older distros: see the GTK3 fallback build tag at https://v3.wails.io/quick-start/installation
 
@@ -92,30 +93,33 @@ warns `pattern ./...: directory prefix . does not contain main module`.
   tails this file live via `LogService`.
 - **`wails3 doctor`**: reports missing system dependencies (GTK/WebKitGTK versions, Node, etc.) -
   run this first if `wails3 dev`/`build` fails for an unclear reason.
-- **Elevation is required for the whole app**, not just the tunnel - `main.go` checks
-  `el.IsAdmin()` before creating any window and self-relaunches elevated
-  (`RelaunchElevated()`) if not. On Windows this is a UAC prompt; on Linux it's `pkexec`
-  (`elevation_linux.go`). A non-interactive shell can't satisfy this prompt - don't try to bypass
-  it (e.g. by running as root directly, which skips real-world elevation behavior you actually want
-  to test).
-- **`Gtk-WARNING: Failed to open display` after the pkexec prompt succeeds (Linux)**: this is a
-  known caveat, not a bug in this app - see "Known operational caveat" in [CLAUDE.md](CLAUDE.md).
-  `pkexec` re-execs the process as root, but root usually can't authenticate to your X11/Wayland
-  session even with `DISPLAY`/`XAUTHORITY` inherited, because your `Xauthority` file is normally
-  `0600`-owned by your user (root can't read the cookie). Practical workarounds for local dev
-  (**do not use in production - this loosens X server access control**):
-  ```bash
-  # Allow the root user to connect to your X server for this login session:
-  xhost +si:localuser:root
-  wails3 dev
-  # Revoke afterwards:
-  xhost -si:localuser:root
-  ```
-  If you're on Wayland (`XDG_SESSION_TYPE=wayland`), the equivalent friction exists via the
-  Wayland socket instead of Xauthority; there's no established one-liner workaround, and the two
-  real fixes are the ones CLAUDE.md lists: pass `DISPLAY`/`XAUTHORITY`/`WAYLAND_DISPLAY`/
-  `XDG_RUNTIME_DIR` through explicitly in `RelaunchElevated`, or move to a privileged-helper model
-  where only tunnel/adapter/route operations run elevated and the window stays unprivileged.
+- **Elevation model differs by platform** - `main.go` checks `el.IsAdmin()` before creating any
+  window and self-relaunches (`RelaunchElevated()`) if not. On **Windows** this is a full UAC prompt
+  elevating the whole process, every launch, same as before. On **Linux** it's a one-time `pkexec`
+  prompt that grants the binary the `CAP_NET_ADMIN` file capability and re-execs itself
+  *unprivileged* - the app never runs as root there (see "Known operational caveat" in
+  [CLAUDE.md](CLAUDE.md) for why). A non-interactive shell can't satisfy either prompt - don't try to
+  bypass it. On Linux specifically, don't bypass it by running the binary directly under `sudo`
+  either: that makes the whole process genuinely root again (root has every capability, including
+  `CAP_NET_ADMIN`, by default, so `IsAdmin()` returns true immediately and the capability-grant path
+  never runs) - reintroducing the exact tray/`SingleInstance` D-Bus problem this design exists to
+  avoid. Let the app manage its own elevation.
+- **Rebuilding the binary re-triggers the one-time Linux prompt**: `go build` produces a new inode,
+  and file capabilities live on that specific inode's extended attributes - a freshly built binary
+  starts without the capability every time. Expected during development, not a regression. Skip it
+  entirely with `sudo setcap cap_net_admin+ep ./client-v3` right after each build, or once per
+  packaged install (see CLAUDE.md's packaging note).
+- **A profile with custom DNS servers may show a *second*, separate password prompt** on connect,
+  even after the one-time capability grant - `resolvectl` (DNS configuration) is gated by polkit, not
+  capabilities, and only genuine root is exempt from that check. This is an accepted, deliberate
+  limitation, not a bug - see CLAUDE.md's operational caveat for the full explanation and why it
+  wasn't worth building a separate always-root helper process just to avoid it.
+- **Launching the app twice**: the second launch is blocked via Wails' `SingleInstance` guard
+  (`main.go`), which brings the already-running instance's window to the front instead of opening a
+  second one. Once the capability has been granted at least once, this happens with **no elevation
+  prompt at all** for the second launch (the `IsAdmin()` check is now a fast local capability check,
+  not a relaunch) - an improvement over the old whole-process-elevation model, where a second launch
+  needed a full UAC/pkexec round-trip before being blocked.
 - **Frontend-only iteration without the Go elevation gate**: run `npm run dev` directly inside
   `frontend/` to get Vite's dev server against whatever bindings were last generated, without
   triggering a Go rebuild or the elevation prompt. Useful for pure UI/CSS work, but bindings won't

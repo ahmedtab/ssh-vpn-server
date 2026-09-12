@@ -28,9 +28,16 @@ func main() {
 	}
 	defer logging.Close()
 
-	// Same elevation gate as the TUI: the whole app (window + tray) runs
-	// elevated for its entire lifetime, since tunnel/adapter/route setup
-	// needs it and there's no privileged-helper split in this version.
+	// What "elevated" means is platform-specific and deliberately asymmetric:
+	// on Windows the whole process (window + tray) runs elevated via UAC for
+	// its entire lifetime, same as the TUI this was forked from - Windows has
+	// no equivalent of the Linux problem below. On Linux, IsAdmin/
+	// RelaunchElevated instead grant just the CAP_NET_ADMIN file capability
+	// tunnel/adapter/route setup needs and re-exec unprivileged - the process
+	// never becomes root, because a root process here cannot join the
+	// invoking user's own D-Bus session bus (confirmed empirically), which
+	// breaks the system tray and the SingleInstance guard below. See
+	// elevation_linux.go and CLAUDE.md's operational caveat.
 	el := currentElevator()
 	if !el.IsAdmin() {
 		if el.RelaunchElevated() {
@@ -38,13 +45,19 @@ func main() {
 			return
 		}
 		logging.Errorf("administrator privileges required")
-		fmt.Println("Error: This application requires administrator privileges.")
-		fmt.Println("Please run as administrator.")
+		fmt.Println("Error: This application requires administrator privileges to create network adapters.")
+		fmt.Println("Please run as administrator (Windows) or grant network permission when prompted (Linux).")
 		el.ShowElevationRequiredMessage()
 		os.Exit(1)
 	}
 	logging.Infof("application started as administrator")
 
+	// tunnel.CleanupOrphanAdapters (and every other privileged operation
+	// tunnel/tunnel_linux.go performs) raises CAP_NET_ADMIN into its own
+	// ambient set only for the brief span of its own ip/resolvectl calls,
+	// not process-wide - see tunnel/ambient_linux.go for why holding it any
+	// longer than that collides with WebKitGTK's own bwrap sandbox once the
+	// window below is created.
 	if err := tunnel.CleanupOrphanAdapters(); err != nil {
 		logging.Errorf("orphan adapter cleanup failed: %v", err)
 	} else {
@@ -71,7 +84,13 @@ func main() {
 
 	tunnelMgr := tunnel.NewTunnelManager()
 
-	app := application.New(application.Options{
+	// window is assigned further down (once the main window is created) but
+	// is referenced by the SingleInstance callback below - same
+	// forward-reference idiom as connectionSvc further down, safe because
+	// the callback can only fire after this process's own app.Run() starts.
+	var window *application.WebviewWindow
+
+	appOptions := application.Options{
 		Name:        "LinkThings",
 		Description: "LinkThings SSH VPN client",
 		Assets: application.AssetOptions{
@@ -83,7 +102,23 @@ func main() {
 		Linux: application.LinuxOptions{
 			DisableQuitOnLastWindowClosed: true,
 		},
-	})
+	}
+	// Safe to enable unconditionally on both platforms: this process is
+	// always running as its own real user with a real desktop session by the
+	// time it reaches here (Windows: same user SID, just elevated via UAC;
+	// Linux: never becomes root at all, see the elevation gate comment
+	// above) - there's no D-Bus-session-reachability gate needed anymore.
+	appOptions.SingleInstance = &application.SingleInstanceOptions{
+		UniqueID: "io.linkthings.client-v3",
+		OnSecondInstanceLaunch: func(data application.SecondInstanceData) {
+			logging.Infof("second_instance_blocked args=%v", data.Args)
+			if window != nil {
+				window.Show()
+				window.Focus()
+			}
+		},
+	}
+	app := application.New(appOptions)
 
 	// connectionSvc is assigned further down, after the tray-rebuild closure
 	// that calls into it is defined below — the closure captures this
@@ -104,7 +139,7 @@ func main() {
 	app.RegisterService(application.NewService(elevationSvc))
 
 	// Narrow, fixed-size panel window per the Nocturne design's app shell.
-	window := app.Window.NewWithOptions(application.WebviewWindowOptions{
+	window = app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:         "LinkThings",
 		Width:         412,
 		Height:        660,

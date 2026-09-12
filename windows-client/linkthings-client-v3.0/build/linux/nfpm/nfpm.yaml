@@ -25,9 +25,11 @@ contents:
     dst: "/usr/share/applications/linkthings-client.desktop"
 
 # Default dependencies for the GTK4 + WebKitGTK 6.0 stack (Ubuntu 24.04+ / Debian 13+)
+# libcap2-bin provides `setcap`, used by postinstall.sh to grant CAP_NET_ADMIN.
 depends:
   - libgtk-4-1
   - libwebkitgtk-6.0-4
+  - libcap2-bin
 
 # Distribution-specific overrides for different package formats
 overrides:
@@ -36,12 +38,14 @@ overrides:
     depends:
       - gtk4
       - webkitgtk6.0
+      - libcap
 
   # Arch Linux packages
   archlinux:
     depends:
       - gtk4
       - webkitgtk-6.0
+      - libcap
 
 # scripts section to ensure desktop database is updated after install
 scripts:

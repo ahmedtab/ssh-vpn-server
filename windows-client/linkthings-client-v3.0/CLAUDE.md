@@ -10,11 +10,19 @@ and replaces the HTTP OTP-provisioning flow with a direct SSH key-authorization 
 ## What carried over from v2 unchanged
 
 `config/`, `keymgmt/`, `logging/` (plus a small live-subscriber addition, see below), `paths/`,
-`tunnel/` (all files, including the `Platform`/`TunDevice` seam and both OS implementations), and
-`elevation.go`/`elevation_windows.go`/`elevation_linux.go`/`elevation_unsupported.go` — all copied
-verbatim (only the import path changed from `linkthings.io/client-v2` to `linkthings.io/client-v3`).
-None of this needed to change for a GUI. See `linkthings-client-v2/CLAUDE.md`'s "Architecture" section
-for how the tunnel/routing/DNS code is organized — it applies here without modification.
+`tunnel/` (all files, including the `Platform`/`TunDevice` seam and both OS implementations) —
+copied verbatim (only the import path changed from `linkthings.io/client-v2` to
+`linkthings.io/client-v3`). None of this needed to change for a GUI. See
+`linkthings-client-v2/CLAUDE.md`'s "Architecture" section for how the tunnel/routing/DNS code is
+organized — it applies here without modification.
+
+`elevation.go`/`elevation_windows.go`/`elevation_linux.go`/`elevation_unsupported.go` started as a
+verbatim copy of v2's, but Linux's has since diverged substantially and no longer means the same
+thing v2's did: v2 (a TUI) elevates the whole process to root, same as this app's Windows side still
+does, but this app's Linux side instead grants the binary a single file capability
+(`CAP_NET_ADMIN`) and never becomes root at all — see the operational caveat below for why, it's not
+optional background reading if you're touching `elevation_linux.go`, `main.go`'s elevation gate, or
+anything tray/`SingleInstance`-related.
 
 ## What's new or different
 
@@ -42,6 +50,11 @@ for how the tunnel/routing/DNS code is organized — it applies here without mod
   hides it (`WindowClosing` hook + `Hide()` + `e.Cancel()`) instead of quitting;
   `DisableQuitOnLastWindowClosed` is set for both Windows and Linux so the app keeps running in the
   tray. The tray menu (Show/Connect/Disconnect/Exit) is rebuilt on every connection-state change.
+  `main.go` also enables Wails' built-in `application.Options.SingleInstance` unconditionally on both
+  platforms (a TUI has no equivalent need — nothing about a second terminal invocation corrupts
+  shared state the way a second GUI process's duplicate window/tray/adapter/tunnel does); this only
+  works reliably because of the elevation model described in the operational caveat below — an
+  elevated-to-root Linux process couldn't sustain it.
 - **`frontend/`**: Vue 3 + Vite + Tailwind v4 + TypeScript (`strict: true`, see
   `frontend/tsconfig.json`), using the `@config` directive to load the handoff's v3-style
   `tailwind.config.js` unchanged (that one file stays plain JS — it's loaded via a raw CSS file-path
@@ -71,29 +84,117 @@ Profiles list's own internal scroll, the profile-picker overlay never pushing co
 screen's exact pixel values matter, open `linkthings-ui.html` in a browser and inspect it rather than
 guessing from the markdown.
 
-## Known operational caveat: elevated GUI vs. the X11/Wayland display and D-Bus session on Linux
+## Known operational caveat: why Linux doesn't elevate the whole process (history + the actual fix)
 
-A pkexec-elevated process on Linux commonly fails to reach the X11/Wayland display at all
-("Failed to open display" from GTK), and separately fails to reach the desktop session's D-Bus
-(root has no `/run/user/0/bus` of its own), because the elevated (root) process doesn't
-automatically inherit the calling user's display/auth cookie or session bus address — this is
-generic Linux desktop friction with running *any* GUI app as root via `pkexec`/`sudo`, not specific
-to this app's code. It didn't matter for v2 (a terminal-only TUI has neither a display nor a tray
-to open), but it's a real practical consequence of this version's "whole app, including the window
-and tray, runs elevated for its entire lifetime" choice (see the parent repo's plan history — this
-was a deliberate decision, not an oversight) once there's an actual window and tray to show.
+**Current model, in one line**: on Linux, `elevation_linux.go` grants the binary the `CAP_NET_ADMIN`
+file capability (via a single `pkexec setcap cap_net_admin+ep <path>` call) and re-execs itself
+*unprivileged* — the process is never root. `IsAdmin()` checks for that capability (`Capget`), not
+`os.Geteuid() == 0`. Windows is unaffected by any of this: it still elevates the whole process via
+UAC for its entire lifetime, same as v2's TUI, because UAC keeps the same user SID at a higher
+integrity level rather than switching to a different identity the way Linux root vs. a regular user
+does — there's no equivalent problem to design around there.
 
-Direction (a) below is implemented: `elevation_linux.go`'s `RelaunchElevated` explicitly forwards
-`DISPLAY`/`XAUTHORITY`/`WAYLAND_DISPLAY`/`XDG_RUNTIME_DIR`/`DBUS_SESSION_BUS_ADDRESS`
-(`sessionEnvVars`) to pkexec rather than relying on its default environment handling — the
-D-Bus var was the last one added, after the tray icon was found to silently never register under
-elevation (Wails' Linux systray logs `"systray error: failed to connect to DBus"` and returns
-rather than failing loudly, so the window still works and the missing tray icon is easy to miss).
-If some other desktop-session-scoped resource turns out to need the same treatment, add it to
-`sessionEnvVars` rather than reaching for direction (b): revisiting the "whole app elevated" model
-in favor of a small privileged helper for just the tunnel/adapter/route operations, leaving the
-window+tray unprivileged (the alternative that was explicitly declined when this was decided —
-reconsider only if passthrough env vars prove insufficient in practice, not preemptively).
+**Why this exists, in full — two prior sessions tried patching around whole-process root elevation
+before this one replaced it:**
+
+A pkexec/`sudo`-elevated *whole process* on Linux fails to reach the X11/Wayland display at all
+("Failed to open display" from GTK) and separately fails to reach the desktop session's D-Bus (root
+has no `/run/user/0/bus` of its own) — generic Linux desktop friction with running any GUI as root,
+not specific to this app. It didn't matter for v2 (a terminal-only TUI has neither a display nor a
+tray), but became a real problem once this version added a window and tray. The first fix attempted
+was forwarding `DISPLAY`/`XAUTHORITY`/`WAYLAND_DISPLAY`/`XDG_RUNTIME_DIR`/`DBUS_SESSION_BUS_ADDRESS`
+through `pkexec` rather than relying on its default environment scrubbing, plus a
+`PrepareDesktopSession()` connectivity check gating whether `SingleInstance` got enabled. Both are
+now removed. They didn't actually work: a **real elevated test on this machine** (not just reading
+docs) showed a genuinely-root process reaching for the invoking user's own D-Bus session bus gets its
+connection closed mid-handshake (`write unix @->/run/user/1000/bus: write: broken pipe`) — reproduced
+via both the app's own `pkexec` relaunch and a bare `sudo`. Root can `open()` the socket fine (it
+bypasses the file's permission bits), and `DBUS_SESSION_BUS_ADDRESS` can point at a real, live bus,
+but the daemon (running as the *session's* uid, not root) rejects the connection once it inspects the
+peer credentials. No amount of env-var forwarding fixes that — it's not a missing-variable problem.
+(A secondary, now-moot wrinkle discovered along the way: without a real session at all,
+`dbus.SessionBus()` doesn't just fail, it falls back to autolaunching an isolated private bus via
+`dbus-launch`, which would make `SingleInstance` silently useless and leak an orphaned `dbus-daemon`
+per launch, or — if `dbus-launch` isn't even installed — fail in a way Wails treats as **fatal**
+(`os.Exit(1)` inside `application.New()`) rather than logging and continuing like the tray's own
+failure does. None of this matters once the process is never root to begin with.)
+
+**The actual fix**: don't put the GUI process in that position at all. Every privileged operation
+`tunnel/tunnel_linux.go` performs (tun device creation, address/route configuration, orphan cleanup)
+needs exactly one thing: the `CAP_NET_ADMIN` capability — confirmed by inspection, and confirmed that
+`/dev/net/tun` itself is world-read-write (`crw-rw-rw-`) so opening it needs no privilege at all; only
+the `TUNSETIFF` ioctl and the `ip` commands after it are capability-gated. Linux file capabilities let
+a specific binary carry `CAP_NET_ADMIN` permanently (`setcap cap_net_admin+ep <path>`, needs root
+once, not repeatedly) without ever making the *process* root. `elevation_linux.go`'s
+`RelaunchElevated()` runs a single short-lived `pkexec setcap ...` command (authenticating that
+one-line operation, not the GUI), then re-execs the same binary directly — no `pkexec` wrapper — so
+the fresh process picks up the capability from the file's metadata (capabilities are computed at
+`exec()` time from the file, not gainable in-place, which is also why rebuilding the binary produces
+a new inode and requires repeating this once). `IsAdmin()` checks for the capability via `Capget`,
+mirroring a pattern already used internally by `golang.org/x/sys/unix` itself
+(`isCapDacOverrideSet` in its `syscall_linux.go`) — same header/data shape, different bit
+(`CAP_NET_ADMIN` instead of `CAP_DAC_OVERRIDE`). Because the process is never a different identity
+than the invoking user, there's no session/display/bus boundary to cross, ever — the tray and
+`SingleInstance` (now enabled unconditionally, see the `main.go` bullet above) just work.
+
+**The file capability alone is necessary but not sufficient**: `tunnel_linux.go` does exactly one
+privileged operation in-process (`unix.Open("/dev/net/tun")` + the `TUNSETIFF` ioctl) — everything
+else (`ip link set mtu`/`up`, `ip addr add`, `ip route replace/del`, `resolvectl dns/domain/revert`,
+`ip link delete` for orphan cleanup) is a *subprocess* invocation via `exec.Command`. A file
+capability granted with `+ep` only benefits this process's own direct syscalls; it does not
+propagate to a child across `exec()` unless the parent's **ambient** capability set includes it
+(confirmed against `ip`/`resolvectl` on this machine via `getcap` — neither carries any file
+capabilities of its own, so without ambient propagation they'd inherit nothing and every one of
+those subprocess calls would fail with "Operation not permitted"). `tunnel/ambient_linux.go`'s
+`withNetAdminAmbient(fn func() error) error` closes this gap: it adds `CAP_NET_ADMIN` to the calling
+goroutine's own thread's inheritable set via `unix.Capset` (legal — a thread can always add to its
+own inheritable set a capability already in its own permitted set, sidestepping any dependence on
+the invoking shell's inheritable set or the file's own inheritable bit), raises it into the ambient
+set via `unix.Prctl(unix.PR_CAP_AMBIENT, unix.PR_CAP_AMBIENT_RAISE, ...)`, runs `fn`, then lowers it
+again with `PR_CAP_AMBIENT_LOWER` before returning — all directly supported by the exact
+`golang.org/x/sys/unix` version this project pins, no raw syscall numbers needed. Every
+`linuxPlatform` method in `tunnel_linux.go` that shells out to `ip`/`resolvectl` wraps just that one
+call in `withNetAdminAmbient`; read-only subprocess calls (`ip route show default`, the `ip link
+show` existence check in `CleanupOrphans`) skip it entirely, since only capability-*changing*
+netlink operations are gated in the first place.
+
+**Why this is scoped this tightly, not raised once at startup (history + the actual fix)**: an
+earlier version of this raised `CAP_NET_ADMIN` into the ambient set exactly once, process-wide, in
+`main.go` immediately after the elevation gate resolved — simpler, but wrong. Ambient capabilities
+are inherited by *every* child process this app execs for as long as they're raised, not just the
+ones it means to elevate, and this app's WebKitGTK webview spawns child processes of its own
+internally (`bwrap`, used to sandbox WebKit's Network/Web processes) as soon as the window is
+created. Verified on this machine: with the capability raised process-wide, a plain unprivileged
+launch (the only correct way to run this app — see below) crashed every time with `bwrap: Unexpected
+capabilities but not setuid, old file caps config?`, then `Failed to fully launch dbus-proxy`, then a
+`SIGTRAP` inside `webkit_web_view_evaluate_javascript` — bubblewrap has a deliberate safety check
+that refuses to run inside a process holding capabilities without being setuid-root, precisely to
+catch this kind of accidental privilege leak into what's supposed to be an unprivileged sandbox.
+(Launching via `sudo` masks the crash, since a genuinely-root process's capabilities aren't
+"unexpected" to that check — but whole-process `sudo`/`pkexec` is never correct here regardless; see
+the D-Bus paragraph above for why.) Because ambient capabilities are per-OS-thread kernel state and
+Go goroutines migrate across OS threads at will between scheduling points, `withNetAdminAmbient` also
+`runtime.LockOSThread()`s for its duration, matched by `defer runtime.UnlockOSThread()` — the calling
+goroutine (e.g. `ConnectionService.Connect`'s goroutine, which keeps running non-privileged code like
+the SSH dial afterward) must not carry the capability forward onto whatever thread the Go scheduler
+hands it next.
+
+**One accepted, deliberate limitation, not a bug**: `tunnel_linux.go`'s `SetDNS`/`RevertDNS` shell out
+to `resolvectl`, which configures systemd-resolved over its D-Bus API — gated by **polkit**, a
+privilege system entirely separate from capabilities. Verified on this machine (both by reading
+`/usr/share/polkit-1/actions/org.freedesktop.resolve1.policy` and by running `pkcheck --action-id
+org.freedesktop.resolve1.set-dns-servers` as a plain capability-holding, non-root user): the policy
+requires `auth_admin_keep` for any active-session caller, and `CAP_NET_ADMIN` does not exempt you from
+it — only genuine root does (systemd has a built-in fast-path that skips polkit entirely for euid-0
+D-Bus callers, which is why the old fully-root-elevated model never showed this prompt). So: a
+profile with custom DNS servers will show one *separate* polkit password dialog when connecting,
+independent of the one-time capability-grant prompt, cached for a while by `auth_admin_keep` but not
+eliminated. Making this go away too would require either making the whole binary setuid-root again
+(reintroducing the tray/D-Bus problem this whole design exists to avoid) or splitting out a tiny
+separate always-root helper process just for the DNS calls — considered, explicitly not done: the
+added complexity (new binary, IPC) wasn't judged worth it for one infrequent, cached prompt. Everything
+else (adapter creation, addressing, routing, orphan cleanup) has zero prompts after the one-time
+capability grant.
 
 ## Known simplification vs. the design handoff
 
@@ -132,6 +233,8 @@ wails3 dev
 There is still no `*_test.go` suite. Verification is: `go vet`/`gofmt`/`go build` for both
 `GOOS=linux` and `GOOS=windows`, `npm run build` for the frontend, and — since this dev machine has a
 real (non-stub) Linux tunnel implementation — actually running the app to exercise Connect/Disconnect
-end-to-end. Running it requires the app's own admin/root elevation gate to succeed (UAC on Windows,
-`pkexec` on Linux), which needs an interactive prompt a non-interactive shell can't satisfy — expect
-that, don't try to bypass it.
+end-to-end. Running it requires the app's own elevation gate to succeed once per binary (full UAC
+elevation on Windows, every launch; on Linux, a one-time `pkexec`-authenticated capability grant per
+built binary — see the operational caveat above for why it's not whole-process elevation there),
+which needs an interactive prompt a non-interactive shell can't satisfy — expect that, don't try to
+bypass it.

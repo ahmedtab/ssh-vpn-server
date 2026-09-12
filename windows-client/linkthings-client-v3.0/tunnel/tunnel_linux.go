@@ -73,13 +73,18 @@ func (linuxPlatform) OpenOrCreateTun(name string, mtu int) (TunDevice, error) {
 
 	dev := &tunFile{File: os.NewFile(uintptr(fd), name), name: name}
 
-	if err := runCommand("ip", "link", "set", "dev", name, "mtu", strconv.Itoa(mtu)); err != nil {
+	err = withNetAdminAmbient(func() error {
+		if err := runCommand("ip", "link", "set", "dev", name, "mtu", strconv.Itoa(mtu)); err != nil {
+			return fmt.Errorf("set mtu failed: %w", err)
+		}
+		if err := runCommand("ip", "link", "set", "dev", name, "up"); err != nil {
+			return fmt.Errorf("bring interface up failed: %w", err)
+		}
+		return nil
+	})
+	if err != nil {
 		_ = dev.Close()
-		return nil, fmt.Errorf("set mtu failed: %w", err)
-	}
-	if err := runCommand("ip", "link", "set", "dev", name, "up"); err != nil {
-		_ = dev.Close()
-		return nil, fmt.Errorf("bring interface up failed: %w", err)
+		return nil, err
 	}
 
 	return dev, nil
@@ -87,7 +92,9 @@ func (linuxPlatform) OpenOrCreateTun(name string, mtu int) (TunDevice, error) {
 
 func (linuxPlatform) ConfigureAddress(dev TunDevice, ip net.IP, mask net.IPMask) error {
 	prefixLen, _ := mask.Size()
-	err := runCommand("ip", "addr", "add", fmt.Sprintf("%s/%d", ip.String(), prefixLen), "dev", dev.Name())
+	err := withNetAdminAmbient(func() error {
+		return runCommand("ip", "addr", "add", fmt.Sprintf("%s/%d", ip.String(), prefixLen), "dev", dev.Name())
+	})
 	if err == nil {
 		return nil
 	}
@@ -100,12 +107,16 @@ func (linuxPlatform) ConfigureAddress(dev TunDevice, ip net.IP, mask net.IPMask)
 
 func (linuxPlatform) AddRoute(r Route) error {
 	args := routeArgs("replace", r)
-	return runCommand("ip", args...)
+	return withNetAdminAmbient(func() error {
+		return runCommand("ip", args...)
+	})
 }
 
 func (linuxPlatform) DeleteRoute(r Route) error {
 	args := routeArgs("del", r)
-	err := runCommand("ip", args...)
+	err := withNetAdminAmbient(func() error {
+		return runCommand("ip", args...)
+	})
 	if err == nil {
 		return nil
 	}
@@ -165,20 +176,24 @@ func (linuxPlatform) SetDNS(dev TunDevice, servers []net.IP) error {
 	}
 
 	args := append([]string{"dns", dev.Name()}, ipStrings(servers)...)
-	if err := runCommand("resolvectl", args...); err != nil {
-		return fmt.Errorf("resolvectl dns failed: %w", err)
-	}
-	if err := runCommand("resolvectl", "domain", dev.Name(), "~."); err != nil {
-		return fmt.Errorf("resolvectl domain failed: %w", err)
-	}
-	return nil
+	return withNetAdminAmbient(func() error {
+		if err := runCommand("resolvectl", args...); err != nil {
+			return fmt.Errorf("resolvectl dns failed: %w", err)
+		}
+		if err := runCommand("resolvectl", "domain", dev.Name(), "~."); err != nil {
+			return fmt.Errorf("resolvectl domain failed: %w", err)
+		}
+		return nil
+	})
 }
 
 func (linuxPlatform) RevertDNS(dev TunDevice) error {
 	if _, err := exec.LookPath("resolvectl"); err != nil {
 		return nil
 	}
-	return runCommand("resolvectl", "revert", dev.Name())
+	return withNetAdminAmbient(func() error {
+		return runCommand("resolvectl", "revert", dev.Name())
+	})
 }
 
 // CleanupOrphans is a lightweight defensive check: since OpenOrCreateTun
@@ -190,7 +205,10 @@ func (linuxPlatform) CleanupOrphans(name string) error {
 		// Not present - nothing to clean up.
 		return nil
 	}
-	if err := runCommand("ip", "link", "delete", name); err != nil {
+	err := withNetAdminAmbient(func() error {
+		return runCommand("ip", "link", "delete", name)
+	})
+	if err != nil {
 		return fmt.Errorf("cleanup orphan tun device %s failed: %w", name, err)
 	}
 	return nil

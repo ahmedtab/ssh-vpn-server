@@ -1,0 +1,1028 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#_top"
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - link [ref=e7] [cursor=pointer]:
+          - /url: /
+        - button "Search" [ref=e10] [cursor=pointer]:
+          - generic [aria-hidden] [ref=e13]: Search
+          - generic [ref=e14]:
+            - generic [ref=e15]: Ctrl
+            - generic [ref=e16]: K
+        - generic [ref=e17]:
+          - generic [ref=e18]:
+            - link "GitHub" [ref=e19] [cursor=pointer]:
+              - /url: https://github.com/wailsapp/wails
+            - link "Discord" [ref=e23] [cursor=pointer]:
+              - /url: https://discord.gg/JDdSxwjhGf
+            - link "Reddit" [ref=e27] [cursor=pointer]:
+              - /url: https://www.reddit.com/r/wails/
+            - link "X" [ref=e31] [cursor=pointer]:
+              - /url: https://x.com/wailsapp
+            - link "RSS" [ref=e35] [cursor=pointer]:
+              - /url: https://v3.wails.io/blog/rss.xml
+            - link "Sponsor" [ref=e39] [cursor=pointer]:
+              - /url: https://github.com/sponsors/leaanthony
+          - link "Blog" [ref=e44] [cursor=pointer]:
+            - /url: /blog/
+          - generic [ref=e46]:
+            - generic [ref=e47]: Select theme
+            - combobox "Select theme" [ref=e48] [cursor=pointer]:
+              - option "Dark"
+              - option "Light"
+              - option "Auto" [selected]
+    - navigation "Main":
+      - list [ref=e52]:
+        - listitem [ref=e53]:
+          - link "Home" [ref=e54] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=e55]:
+          - link "Why Wails?" [ref=e56] [cursor=pointer]:
+            - /url: /quick-start/why-wails
+        - listitem [ref=e57]:
+          - group [ref=e58]:
+            - generic "Quick Start" [ref=e59] [cursor=pointer]
+            - list [ref=e63]:
+              - listitem [ref=e64]:
+                - link "Installation" [ref=e65] [cursor=pointer]:
+                  - /url: /quick-start/installation
+              - listitem [ref=e66]:
+                - link "Your First App" [ref=e67] [cursor=pointer]:
+                  - /url: /quick-start/first-app
+              - listitem [ref=e68]:
+                - link "Next Steps" [ref=e69] [cursor=pointer]:
+                  - /url: /quick-start/next-steps
+        - listitem [ref=e70]:
+          - group [ref=e71]:
+            - generic "Tutorials" [ref=e72] [cursor=pointer]
+        - listitem [ref=e76]:
+          - group [ref=e77]:
+            - generic "Core Concepts" [ref=e78] [cursor=pointer]
+        - listitem [ref=e82]:
+          - group [ref=e83]:
+            - generic "Features" [ref=e84] [cursor=pointer]
+            - list [ref=e88]:
+              - listitem [ref=e89]:
+                - group [ref=e90]:
+                  - generic "Windows" [ref=e91] [cursor=pointer]
+              - listitem [ref=e95]:
+                - group [ref=e96]:
+                  - generic "Menus" [ref=e97] [cursor=pointer]
+                  - list [ref=e101]:
+                    - listitem [ref=e102]:
+                      - link "Application Menus" [ref=e103] [cursor=pointer]:
+                        - /url: /features/menus/application
+                    - listitem [ref=e104]:
+                      - link "Context Menus" [ref=e105] [cursor=pointer]:
+                        - /url: /features/menus/context
+                    - listitem [ref=e106]:
+                      - link "System Tray Menus" [ref=e107] [cursor=pointer]:
+                        - /url: /features/menus/systray
+                    - listitem [ref=e108]:
+                      - link "Menu Reference" [ref=e109] [cursor=pointer]:
+                        - /url: /features/menus/reference
+              - listitem [ref=e110]:
+                - group [ref=e111]:
+                  - generic "Bindings & Services" [ref=e112] [cursor=pointer]
+              - listitem [ref=e116]:
+                - group [ref=e117]:
+                  - generic "Events" [ref=e118] [cursor=pointer]
+              - listitem [ref=e122]:
+                - group [ref=e123]:
+                  - generic "Dialogs" [ref=e124] [cursor=pointer]
+              - listitem [ref=e128]:
+                - group [ref=e129]:
+                  - generic "Autostart" [ref=e130] [cursor=pointer]
+              - listitem [ref=e134]:
+                - group [ref=e135]:
+                  - generic "Clipboard" [ref=e136] [cursor=pointer]
+              - listitem [ref=e140]:
+                - group [ref=e141]:
+                  - generic "Browser" [ref=e142] [cursor=pointer]
+              - listitem [ref=e146]:
+                - group [ref=e147]:
+                  - generic "Drag & Drop" [ref=e148] [cursor=pointer]
+              - listitem [ref=e152]:
+                - group [ref=e153]:
+                  - generic "Keyboard" [ref=e154] [cursor=pointer]
+              - listitem [ref=e158]:
+                - group [ref=e159]:
+                  - generic "Notifications" [ref=e160] [cursor=pointer]
+              - listitem [ref=e164]:
+                - group [ref=e165]:
+                  - generic "Screens" [ref=e166] [cursor=pointer]
+              - listitem [ref=e170]:
+                - group [ref=e171]:
+                  - generic "Environment" [ref=e172] [cursor=pointer]
+              - listitem [ref=e176]:
+                - group [ref=e177]:
+                  - generic "Platform-Specific" [ref=e178] [cursor=pointer]
+        - listitem [ref=e182]:
+          - group [ref=e183]:
+            - generic "Mobile" [ref=e184] [cursor=pointer]
+        - listitem [ref=e188]:
+          - group [ref=e189]:
+            - generic "Experimental" [ref=e190] [cursor=pointer]
+        - listitem [ref=e194]:
+          - group [ref=e195]:
+            - generic "Guides" [ref=e196] [cursor=pointer]
+        - listitem [ref=e200]:
+          - group [ref=e201]:
+            - generic "API Reference" [ref=e202] [cursor=pointer]
+        - listitem [ref=e206]:
+          - group [ref=e207]:
+            - generic "Contributing" [ref=e208] [cursor=pointer]
+        - listitem [ref=e212]:
+          - group [ref=e213]:
+            - generic "Migration" [ref=e214] [cursor=pointer]
+        - listitem [ref=e218]:
+          - group [ref=e219]:
+            - generic "Troubleshooting" [ref=e220] [cursor=pointer]
+        - listitem [ref=e224]:
+          - group [ref=e225]:
+            - generic "Community" [ref=e226] [cursor=pointer]
+        - listitem [ref=e230]:
+          - link "What's New" [ref=e231] [cursor=pointer]:
+            - /url: /whats-new
+        - listitem [ref=e232]:
+          - link "Status" [ref=e233] [cursor=pointer]:
+            - /url: /status
+        - listitem [ref=e234]:
+          - link "Changelog" [ref=e235] [cursor=pointer]:
+            - /url: /changelog
+        - listitem [ref=e236]:
+          - link "Sponsor ❤️" [ref=e237] [cursor=pointer]:
+            - /url: https://github.com/sponsors/leaanthony
+            - text: Sponsor
+            - generic [ref=e238]: ❤️
+        - listitem [ref=e239]:
+          - link "Credits" [ref=e240] [cursor=pointer]:
+            - /url: /credits
+    - generic [ref=e242]:
+      - complementary:
+        - navigation [ref=e243]:
+          - group [ref=e244]:
+            - generic "On this page" [ref=e245]
+      - main [ref=e250]:
+        - heading "System Tray Menus" [level=1] [ref=e253]
+        - generic [ref=e255]:
+          - generic [ref=e256]:
+            - generic [ref=e257]:
+              - heading "System Tray Menus" [level=2] [ref=e258]
+              - link "Section titled “System Tray Menus”" [ref=e259] [cursor=pointer]:
+                - /url: "#system-tray-menus"
+            - paragraph [ref=e264]:
+              - text: Wails provides
+              - strong [ref=e265]: unified system tray APIs
+              - text: that work across all platforms. Create tray icons with menus, attach windows, and handle clicks with native platform behaviour for background applications, services, and quick-access utilities.
+            - img "A Wails system tray menu, opened from the macOS menu bar" [ref=e266]
+            - paragraph [ref=e267]: On macOS, a Wails system tray item appears in the menu bar and opens a native menu. The example includes disabled, checkbox, radio, submenu, and action items.
+            - generic [ref=e268]:
+              - heading "Quick Start" [level=2] [ref=e269]
+              - link "Section titled “Quick Start”" [ref=e270] [cursor=pointer]:
+                - /url: "#quick-start"
+            - figure [ref=e276]:
+              - code [ref=e278]:
+                - generic [ref=e279]: package main
+                - generic [ref=e283]: import (
+                - generic [ref=e285]: _ "embed"
+                - generic [ref=e287]: "\"github.com/wailsapp/wails/v3/pkg/application\""
+                - generic [ref=e289]: )
+                - generic [ref=e293]: //go:embed assets/icon.png
+                - generic [ref=e295]: var icon []byte
+                - generic [ref=e299]: "func main() {"
+                - generic [ref=e301]: "app := application.New(application.Options{"
+                - generic [ref=e303]: "Name: \"Tray App\","
+                - generic [ref=e305]: "})"
+                - generic [ref=e310]: // Create system tray
+                - generic [ref=e312]: systray := app.SystemTray.New()
+                - generic [ref=e314]: systray.SetIcon(icon)
+                - generic [ref=e316]: systray.SetLabel("My App")
+                - generic [ref=e320]: // Add menu
+                - generic [ref=e322]: menu := app.NewMenu()
+                - generic [ref=e325]:
+                  - text: menu.Add("Show").OnClick(func
+                  - generic [ref=e326]: (ctx
+                  - text: "*application.Context) {"
+                - generic [ref=e327]: // Show main window
+                - generic [ref=e329]: "})"
+                - generic [ref=e333]:
+                  - text: menu.Add("Quit").OnClick(func
+                  - generic [ref=e334]: (ctx
+                  - text: "*application.Context) {"
+                - generic [ref=e335]: app.Quit()
+                - generic [ref=e337]: "})"
+                - generic [ref=e340]: systray.SetMenu(menu)
+                - generic [ref=e344]: // Create hidden window
+                - generic [ref=e346]: window := app.Window.New()
+                - generic [ref=e348]: window.Hide()
+                - generic [ref=e352]: app.Run()
+                - generic [ref=e354]: "}"
+              - button "Copy to clipboard" [ref=e357] [cursor=pointer]
+            - paragraph [ref=e359]:
+              - strong [ref=e360]: "Result:"
+              - text: System tray icon with menu on all platforms.
+            - generic [ref=e361]:
+              - heading "Creating a System Tray" [level=2] [ref=e362]
+              - link "Section titled “Creating a System Tray”" [ref=e363] [cursor=pointer]:
+                - /url: "#creating-a-system-tray"
+            - generic [ref=e368]:
+              - heading "Basic System Tray" [level=3] [ref=e369]
+              - link "Section titled “Basic System Tray”" [ref=e370] [cursor=pointer]:
+                - /url: "#basic-system-tray"
+            - figure [ref=e376]:
+              - code [ref=e378]:
+                - generic [ref=e379]: // Create system tray
+                - generic [ref=e381]: systray := app.SystemTray.New()
+                - generic [ref=e385]: // Set icon
+                - generic [ref=e387]: systray.SetIcon(iconBytes)
+                - generic [ref=e391]: // Set label (macOS) / tooltip (Windows)
+                - generic [ref=e393]: systray.SetLabel("My Application")
+              - button "Copy to clipboard" [ref=e396] [cursor=pointer]
+            - generic [ref=e398]:
+              - heading "With Icon" [level=3] [ref=e399]
+              - link "Section titled “With Icon”" [ref=e400] [cursor=pointer]:
+                - /url: "#with-icon"
+            - paragraph [ref=e405]: "Icons should be embedded:"
+            - figure [ref=e407]:
+              - code [ref=e409]:
+                - generic [ref=e410]: import _ "embed"
+                - generic [ref=e414]: //go:embed assets/icon.png
+                - generic [ref=e416]: var icon []byte
+                - generic [ref=e420]: //go:embed assets/icon-dark.png
+                - generic [ref=e422]: var iconDark []byte
+                - generic [ref=e426]: "func main() {"
+                - generic [ref=e428]: "app := application.New(application.Options{"
+                - generic [ref=e430]: "Name: \"My App\","
+                - generic [ref=e432]: "})"
+                - generic [ref=e437]: systray := app.SystemTray.New()
+                - generic [ref=e439]: systray.SetIcon(icon)
+                - generic [ref=e441]: systray.SetDarkModeIcon(iconDark) // Windows and macOS dark mode
+                - generic [ref=e445]: app.Run()
+                - generic [ref=e447]: "}"
+              - button "Copy to clipboard" [ref=e450] [cursor=pointer]
+            - paragraph [ref=e452]:
+              - strong [ref=e453]: "Icon requirements:"
+            - table [ref=e454]:
+              - rowgroup [ref=e455]:
+                - row [ref=e456]:
+                  - columnheader "Platform" [ref=e457]
+                  - columnheader "Size" [ref=e458]
+                  - columnheader "Format" [ref=e459]
+                  - columnheader "Notes" [ref=e460]
+              - rowgroup [ref=e461]:
+                - row [ref=e462]:
+                  - cell [ref=e463]:
+                    - strong [ref=e464]: Windows
+                  - cell "16x16 or 32x32" [ref=e465]
+                  - cell "PNG, ICO" [ref=e466]
+                  - cell "Notification area" [ref=e467]
+                - row [ref=e468]:
+                  - cell [ref=e469]:
+                    - strong [ref=e470]: macOS
+                  - cell "18x18 to 22x22" [ref=e471]
+                  - cell "PNG" [ref=e472]
+                  - cell "Menu bar, template recommended" [ref=e473]
+                - row [ref=e474]:
+                  - cell [ref=e475]:
+                    - strong [ref=e476]: Linux
+                  - cell "22x22 to 48x48" [ref=e477]
+                  - cell "PNG, SVG" [ref=e478]
+                  - cell "Varies by DE" [ref=e479]
+            - generic [ref=e480]:
+              - heading "Template Icons (macOS)" [level=3] [ref=e481]
+              - link "Section titled “Template Icons (macOS)”" [ref=e482] [cursor=pointer]:
+                - /url: "#template-icons-macos"
+            - paragraph [ref=e487]: "Template icons adapt to light/dark mode automatically:"
+            - figure [ref=e489]:
+              - code [ref=e491]:
+                - generic [ref=e492]: systray.SetTemplateIcon(iconBytes)
+              - button "Copy to clipboard" [ref=e495] [cursor=pointer]
+            - paragraph [ref=e497]:
+              - strong [ref=e498]: "Template icon guidelines:"
+            - list [ref=e499]:
+              - listitem [ref=e500]: Use black and clear (transparent) colours only
+              - listitem [ref=e501]: Black becomes white in dark mode
+              - listitem [ref=e502]:
+                - text: Name file with
+                - code [ref=e503]: Template
+                - text: "suffix:"
+                - code [ref=e504]: iconTemplate.png
+              - listitem [ref=e505]:
+                - link "Design guide" [ref=e506] [cursor=pointer]:
+                  - /url: https://bjango.com/articles/designingmenubarextras/
+            - generic [ref=e507]:
+              - heading "Adding Menus" [level=2] [ref=e508]
+              - link "Section titled “Adding Menus”" [ref=e509] [cursor=pointer]:
+                - /url: "#adding-menus"
+            - paragraph [ref=e514]: "System tray menus work like application menus:"
+            - figure [ref=e516]:
+              - code [ref=e518]:
+                - generic [ref=e519]: menu := app.NewMenu()
+                - generic [ref=e523]: // Add items
+                - generic [ref=e526]:
+                  - text: menu.Add("Open").OnClick(func
+                  - generic [ref=e527]: (ctx
+                  - text: "*application.Context) {"
+                - generic [ref=e528]: showMainWindow()
+                - generic [ref=e530]: "})"
+                - generic [ref=e534]: menu.AddSeparator()
+                - generic [ref=e539]:
+                  - text: menu.AddCheckbox("Start at Login", false).OnClick(func
+                  - generic [ref=e540]: (ctx
+                  - text: "*application.Context) {"
+                - generic [ref=e541]: enabled := ctx.ClickedMenuItem().Checked()
+                - generic [ref=e543]: setStartAtLogin(enabled)
+                - generic [ref=e545]: "})"
+                - generic [ref=e549]: menu.AddSeparator()
+                - generic [ref=e554]:
+                  - text: menu.Add("Quit").OnClick(func
+                  - generic [ref=e555]: (ctx
+                  - text: "*application.Context) {"
+                - generic [ref=e556]: app.Quit()
+                - generic [ref=e558]: "})"
+                - generic [ref=e562]: // Set menu
+                - generic [ref=e564]: systray.SetMenu(menu)
+              - button "Copy to clipboard" [ref=e567] [cursor=pointer]
+            - paragraph [ref=e569]:
+              - strong [ref=e570]: For all menu item types
+              - text: ", see"
+              - link "Menu Reference" [ref=e571] [cursor=pointer]:
+                - /url: /features/menus/reference
+              - text: .
+            - generic [ref=e572]:
+              - heading "Attaching Windows" [level=2] [ref=e573]
+              - link "Section titled “Attaching Windows”" [ref=e574] [cursor=pointer]:
+                - /url: "#attaching-windows"
+            - paragraph [ref=e579]: "Attach a window to the tray icon for automatic show/hide:"
+            - figure [ref=e581]:
+              - code [ref=e583]:
+                - generic [ref=e584]: // Create window
+                - generic [ref=e586]: window := app.Window.New()
+                - generic [ref=e590]: // Attach to tray
+                - generic [ref=e592]: systray.AttachWindow(window)
+                - generic [ref=e596]: // Configure behaviour — these are setters that return the receiver for chaining.
+                - generic [ref=e598]: systray.WindowOffset(10) // Pixels from tray icon
+                - generic [ref=e600]: systray.WindowDebounce(200 * time.Millisecond) // Click debounce
+              - button "Copy to clipboard" [ref=e603] [cursor=pointer]
+            - paragraph [ref=e605]:
+              - strong [ref=e606]: "Behaviour:"
+            - list [ref=e607]:
+              - listitem [ref=e608]: Window starts hidden
+              - listitem [ref=e609]:
+                - strong [ref=e610]: Left-click tray icon
+                - text: → Toggle window visibility
+              - listitem [ref=e611]:
+                - strong [ref=e612]: Right-click tray icon
+                - text: → Show menu (if set)
+              - listitem [ref=e613]: Window positioned near tray icon
+            - paragraph [ref=e614]:
+              - strong [ref=e615]: "Example: Popup window"
+            - figure [ref=e617]:
+              - code [ref=e619]:
+                - generic [ref=e620]: "window := app.Window.NewWithOptions(application.WebviewWindowOptions{"
+                - generic [ref=e622]: "Title: \"Quick Access\","
+                - generic [ref=e624]: "Width: 300,"
+                - generic [ref=e626]: "Height: 400,"
+                - generic [ref=e628]: "Frameless: true, // No title bar"
+                - generic [ref=e630]: "AlwaysOnTop: true, // Stay on top"
+                - generic [ref=e632]: "HideOnFocusLost: true, // Dismiss when another window receives focus"
+                - generic [ref=e634]: "HideOnEscape: true, // Dismiss when the user presses Escape"
+                - generic [ref=e636]: "})"
+                - generic [ref=e640]: systray.AttachWindow(window)
+                - generic [ref=e642]: systray.WindowOffset(5)
+              - button "Copy to clipboard" [ref=e645] [cursor=pointer]
+            - paragraph [ref=e647]:
+              - code [ref=e648]: HideOnFocusLost
+              - text: is useful for tray popups on Windows, macOS, and click-to-focus Linux desktops. Wails disables that behaviour on Linux focus-follows-mouse environments (including common Hyprland, Sway, and i3 setups), where leaving the popup could otherwise hide it before it can be used.
+              - code [ref=e649]: HideOnEscape
+              - text: remains available in those environments.
+            - paragraph [ref=e650]:
+              - text: The left- and right-click behaviours above are smart defaults. An explicit
+              - code [ref=e651]: OnClick
+              - text: or
+              - code [ref=e652]: OnRightClick
+              - text: handler replaces the corresponding default. For platform checks and edge cases, see the
+              - link "manual systray suite" [ref=e653] [cursor=pointer]:
+                - /url: https://github.com/wailsapp/wails/tree/master/v3/test/manual/systray
+              - text: and the
+              - link "systray stress example" [ref=e654] [cursor=pointer]:
+                - /url: https://github.com/wailsapp/wails/tree/master/v3/examples/systray-stress
+              - text: .
+            - generic [ref=e655]:
+              - heading "Click Handlers" [level=2] [ref=e656]
+              - link "Section titled “Click Handlers”" [ref=e657] [cursor=pointer]:
+                - /url: "#click-handlers"
+            - paragraph [ref=e662]: "Handle tray icon clicks:"
+            - figure [ref=e664]:
+              - code [ref=e666]:
+                - generic [ref=e667]: systray := app.SystemTray.New()
+                - generic [ref=e671]: // Left click
+                - generic [ref=e673]: "systray.OnClick(func() {"
+                - generic [ref=e675]: fmt.Println("Tray icon clicked")
+                - generic [ref=e677]: "})"
+                - generic [ref=e681]: // Right click
+                - generic [ref=e683]: "systray.OnRightClick(func() {"
+                - generic [ref=e685]: fmt.Println("Tray icon right-clicked")
+                - generic [ref=e687]: "})"
+                - generic [ref=e691]: // Double click
+                - generic [ref=e693]: "systray.OnDoubleClick(func() {"
+                - generic [ref=e695]: fmt.Println("Tray icon double-clicked")
+                - generic [ref=e697]: "})"
+                - generic [ref=e701]: // Mouse enter/leave
+                - generic [ref=e703]: "systray.OnMouseEnter(func() {"
+                - generic [ref=e705]: fmt.Println("Mouse entered tray icon")
+                - generic [ref=e707]: "})"
+                - generic [ref=e711]: "systray.OnMouseLeave(func() {"
+                - generic [ref=e713]: fmt.Println("Mouse left tray icon")
+                - generic [ref=e715]: "})"
+              - button "Copy to clipboard" [ref=e718] [cursor=pointer]
+            - paragraph [ref=e720]:
+              - strong [ref=e721]: "Platform support:"
+            - table [ref=e722]:
+              - rowgroup [ref=e723]:
+                - row [ref=e724]:
+                  - columnheader "Event" [ref=e725]
+                  - columnheader "Windows" [ref=e726]
+                  - columnheader "macOS" [ref=e727]
+                  - columnheader "Linux" [ref=e728]
+              - rowgroup [ref=e729]:
+                - row [ref=e730]:
+                  - cell "OnClick" [ref=e731]
+                  - cell "✅" [ref=e732]
+                  - cell "✅" [ref=e733]
+                  - cell "✅" [ref=e734]
+                - row [ref=e735]:
+                  - cell "OnRightClick" [ref=e736]
+                  - cell "✅" [ref=e737]
+                  - cell "✅" [ref=e738]
+                  - cell "✅" [ref=e739]
+                - row [ref=e740]:
+                  - cell "OnDoubleClick" [ref=e741]
+                  - cell "✅" [ref=e742]
+                  - cell "✅" [ref=e743]
+                  - cell "⚠️ Varies" [ref=e744]
+                - row [ref=e745]:
+                  - cell "OnMouseEnter" [ref=e746]
+                  - cell "✅" [ref=e747]
+                  - cell "✅" [ref=e748]
+                  - cell "⚠️ Varies" [ref=e749]
+                - row [ref=e750]:
+                  - cell "OnMouseLeave" [ref=e751]
+                  - cell "✅" [ref=e752]
+                  - cell "✅" [ref=e753]
+                  - cell "⚠️ Varies" [ref=e754]
+            - generic [ref=e755]:
+              - heading "Dynamic Updates" [level=2] [ref=e756]
+              - link "Section titled “Dynamic Updates”" [ref=e757] [cursor=pointer]:
+                - /url: "#dynamic-updates"
+            - paragraph [ref=e762]: "Update tray icon and menu dynamically:"
+            - generic [ref=e763]:
+              - heading "Change Icon" [level=3] [ref=e764]
+              - link "Section titled “Change Icon”" [ref=e765] [cursor=pointer]:
+                - /url: "#change-icon"
+            - figure [ref=e771]:
+              - code [ref=e773]:
+                - generic [ref=e774]: var isActive bool
+                - generic [ref=e778]: "func updateTrayIcon() {"
+                - generic [ref=e780]: "if isActive {"
+                - generic [ref=e782]: systray.SetIcon(activeIcon)
+                - generic [ref=e784]: systray.SetLabel("Active")
+                - generic [ref=e786]: "} else {"
+                - generic [ref=e789]: systray.SetIcon(inactiveIcon)
+                - generic [ref=e791]: systray.SetLabel("Inactive")
+                - generic [ref=e793]: "}"
+                - generic [ref=e796]: "}"
+              - button "Copy to clipboard" [ref=e799] [cursor=pointer]
+            - generic [ref=e801]:
+              - heading "Update Menu" [level=3] [ref=e802]
+              - link "Section titled “Update Menu”" [ref=e803] [cursor=pointer]:
+                - /url: "#update-menu"
+            - figure [ref=e809]:
+              - code [ref=e811]:
+                - generic [ref=e812]: var isPaused bool
+                - generic [ref=e816]: pauseMenuItem := menu.Add("Pause")
+                - generic [ref=e821]:
+                  - text: pauseMenuItem.OnClick(func
+                  - generic [ref=e822]: (ctx
+                  - text: "*application.Context) {"
+                - generic [ref=e823]: isPaused = !isPaused
+                - generic [ref=e827]: "if isPaused {"
+                - generic [ref=e829]: pauseMenuItem.SetLabel("Resume")
+                - generic [ref=e831]: "} else {"
+                - generic [ref=e834]: pauseMenuItem.SetLabel("Pause")
+                - generic [ref=e836]: "}"
+                - generic [ref=e841]: menu.Update() // Important!
+                - generic [ref=e843]: "})"
+              - button "Copy to clipboard" [ref=e846] [cursor=pointer]
+            - complementary "Always Call Update()" [ref=e848]:
+              - paragraph [aria-hidden] [ref=e849]: Always Call Update()
+              - paragraph [ref=e853]:
+                - text: After changing menu state,
+                - strong [ref=e854]:
+                  - text: call
+                  - code [ref=e855]: menu.Update()
+                - text: . See
+                - link "Menu Reference" [ref=e856] [cursor=pointer]:
+                  - /url: /features/menus/reference#enabled-state
+                - text: .
+            - generic [ref=e857]:
+              - heading "Rebuild Menu" [level=3] [ref=e858]
+              - link "Section titled “Rebuild Menu”" [ref=e859] [cursor=pointer]:
+                - /url: "#rebuild-menu"
+            - paragraph [ref=e864]: "For major changes, rebuild the entire menu:"
+            - figure [ref=e866]:
+              - code [ref=e868]:
+                - generic [ref=e870]:
+                  - text: func rebuildTrayMenu
+                  - generic [ref=e871]: (status
+                  - text: "string) {"
+                - generic [ref=e872]: menu := app.NewMenu()
+                - generic [ref=e876]: // Status-specific items
+                - generic [ref=e878]: "switch status {"
+                - generic [ref=e880]: "case \"syncing\":"
+                - generic [ref=e882]: menu.Add("Syncing...").SetEnabled(false)
+                - generic [ref=e884]: menu.Add("Pause Sync").OnClick(pauseSync)
+                - generic [ref=e886]: "case \"synced\":"
+                - generic [ref=e888]: menu.Add("Up to date ✓").SetEnabled(false)
+                - generic [ref=e890]: menu.Add("Sync Now").OnClick(startSync)
+                - generic [ref=e892]: "case \"error\":"
+                - generic [ref=e894]: menu.Add("Sync Error").SetEnabled(false)
+                - generic [ref=e896]: menu.Add("Retry").OnClick(retrySync)
+                - generic [ref=e898]: "}"
+                - generic [ref=e903]: menu.AddSeparator()
+                - generic [ref=e906]:
+                  - text: menu.Add("Quit").OnClick(func
+                  - generic [ref=e907]: (ctx
+                  - text: "*application.Context) {"
+                - generic [ref=e908]: app.Quit()
+                - generic [ref=e910]: "})"
+                - generic [ref=e915]: systray.SetMenu(menu)
+                - generic [ref=e917]: "}"
+              - button "Copy to clipboard" [ref=e920] [cursor=pointer]
+            - generic [ref=e922]:
+              - heading "Platform-Specific Features" [level=2] [ref=e923]
+              - link "Section titled “Platform-Specific Features”" [ref=e924] [cursor=pointer]:
+                - /url: "#platform-specific-features"
+            - generic [ref=e929]:
+              - tablist [ref=e931]:
+                - tab "macOS" [selected] [ref=e932] [cursor=pointer]
+                - tab "Windows" [ref=e935] [cursor=pointer]
+                - tab "Linux" [ref=e938] [cursor=pointer]
+              - tabpanel "macOS" [ref=e941]:
+                - paragraph [ref=e942]:
+                  - strong [ref=e943]: "Menu bar integration:"
+                - figure [ref=e945]:
+                  - code [ref=e947]:
+                    - generic [ref=e948]: // Set label (appears next to icon)
+                    - generic [ref=e950]: systray.SetLabel("My App")
+                    - generic [ref=e954]: // Use template icon (adapts to dark mode)
+                    - generic [ref=e956]: systray.SetTemplateIcon(iconBytes)
+                    - generic [ref=e960]: // Set icon position — uses AppKit NSImage placement constants.
+                    - generic [ref=e962]: systray.SetIconPosition(application.NSImageRight)
+                  - button "Copy to clipboard" [ref=e965] [cursor=pointer]
+                - paragraph [ref=e967]:
+                  - strong [ref=e968]: Icon positions
+                  - text: (mirroring
+                  - code [ref=e969]: NSImagePosition
+                  - text: "):"
+                - list [ref=e970]:
+                  - listitem [ref=e971]:
+                    - code [ref=e972]: application.NSImageLeft
+                    - text: "- Icon left of label."
+                  - listitem [ref=e973]:
+                    - code [ref=e974]: application.NSImageRight
+                    - text: "- Icon right of label."
+                  - listitem [ref=e975]:
+                    - code [ref=e976]: application.NSImageOnly
+                    - text: "- Icon only, no label."
+                  - listitem [ref=e977]:
+                    - code [ref=e978]: application.NSImageNone
+                    - text: "- Label only, no icon."
+                - paragraph [ref=e979]:
+                  - strong [ref=e980]: "Best practices:"
+                - list [ref=e981]:
+                  - listitem [ref=e982]: Use template icons (black + transparent)
+                  - listitem [ref=e983]: Keep labels short (3-5 characters)
+                  - listitem [ref=e984]: 18x18 to 22x22 pixels for Retina displays
+                  - listitem [ref=e985]: Test in both light and dark modes
+            - generic [ref=e986]:
+              - heading "Complete Example" [level=2] [ref=e987]
+              - link "Section titled “Complete Example”" [ref=e988] [cursor=pointer]:
+                - /url: "#complete-example"
+            - paragraph [ref=e993]: "Here’s a production-ready system tray application:"
+            - figure [ref=e995]:
+              - code [ref=e997]:
+                - generic [ref=e998]: package main
+                - generic [ref=e1002]: import (
+                - generic [ref=e1004]: _ "embed"
+                - generic [ref=e1006]: "\"fmt\""
+                - generic [ref=e1008]: "\"time\""
+                - generic [ref=e1010]: "\"github.com/wailsapp/wails/v3/pkg/application\""
+                - generic [ref=e1012]: )
+                - generic [ref=e1016]: //go:embed assets/icon.png
+                - generic [ref=e1018]: var icon []byte
+                - generic [ref=e1022]: //go:embed assets/icon-active.png
+                - generic [ref=e1024]: var iconActive []byte
+                - generic [ref=e1028]: "type TrayApp struct {"
+                - generic [ref=e1030]: app *application.App
+                - generic [ref=e1032]: systray *application.SystemTray
+                - generic [ref=e1034]: window *application.WebviewWindow
+                - generic [ref=e1036]: menu *application.Menu
+                - generic [ref=e1038]: isActive bool
+                - generic [ref=e1040]: "}"
+                - generic [ref=e1044]: "func main() {"
+                - generic [ref=e1046]: "app := application.New(application.Options{"
+                - generic [ref=e1048]: "Name: \"Tray Application\","
+                - generic [ref=e1050]: "Mac: application.MacOptions{"
+                - generic [ref=e1052]: "ApplicationShouldTerminateAfterLastWindowClosed: false,"
+                - generic [ref=e1054]: "},"
+                - generic [ref=e1057]: "})"
+                - generic [ref=e1062]: "trayApp := &TrayApp{app: app}"
+                - generic [ref=e1064]: trayApp.setup()
+                - generic [ref=e1068]: app.Run()
+                - generic [ref=e1070]: "}"
+                - generic [ref=e1075]:
+                  - text: func
+                  - generic [ref=e1076]: (t
+                  - text: "*TrayApp) setup() {"
+                - generic [ref=e1077]: // Create system tray
+                - generic [ref=e1079]: t.systray = t.app.SystemTray.New()
+                - generic [ref=e1081]: t.systray.SetIcon(icon)
+                - generic [ref=e1083]: t.systray.SetLabel("Inactive")
+                - generic [ref=e1087]: // Create menu
+                - generic [ref=e1089]: t.createMenu()
+                - generic [ref=e1093]: // Create window (hidden by default)
+                - generic [ref=e1095]: "t.window = t.app.Window.NewWithOptions(application.WebviewWindowOptions{"
+                - generic [ref=e1097]: "Title: \"Tray Application\","
+                - generic [ref=e1099]: "Width: 400,"
+                - generic [ref=e1101]: "Height: 600,"
+                - generic [ref=e1103]: "Hidden: true,"
+                - generic [ref=e1105]: "})"
+                - generic [ref=e1110]: // Attach window to tray
+                - generic [ref=e1112]: t.systray.AttachWindow(t.window)
+                - generic [ref=e1114]: t.systray.WindowOffset(10)
+                - generic [ref=e1118]: // Handle tray clicks
+                - generic [ref=e1120]: "t.systray.OnRightClick(func() {"
+                - generic [ref=e1122]: t.systray.OpenMenu()
+                - generic [ref=e1124]: "})"
+                - generic [ref=e1129]: // Start background task
+                - generic [ref=e1131]: go t.backgroundTask()
+                - generic [ref=e1133]: "}"
+                - generic [ref=e1138]:
+                  - text: func
+                  - generic [ref=e1139]: (t
+                  - text: "*TrayApp) createMenu() {"
+                - generic [ref=e1140]: t.menu = t.app.NewMenu()
+                - generic [ref=e1144]: // Status item (disabled)
+                - generic [ref=e1146]: "statusItem := t.menu.Add(\"Status: Inactive\")"
+                - generic [ref=e1148]: statusItem.SetEnabled(false)
+                - generic [ref=e1152]: t.menu.AddSeparator()
+                - generic [ref=e1156]: // Toggle active
+                - generic [ref=e1159]:
+                  - text: t.menu.Add("Start").OnClick(func
+                  - generic [ref=e1160]: (ctx
+                  - text: "*application.Context) {"
+                - generic [ref=e1161]: t.toggleActive()
+                - generic [ref=e1163]: "})"
+                - generic [ref=e1168]: // Show window
+                - generic [ref=e1171]:
+                  - text: t.menu.Add("Show Window").OnClick(func
+                  - generic [ref=e1172]: (ctx
+                  - text: "*application.Context) {"
+                - generic [ref=e1173]: t.window.Show()
+                - generic [ref=e1175]: t.window.Focus()
+                - generic [ref=e1177]: "})"
+                - generic [ref=e1182]: t.menu.AddSeparator()
+                - generic [ref=e1186]: // Settings
+                - generic [ref=e1189]:
+                  - text: t.menu.AddCheckbox("Start at Login", false).OnClick(func
+                  - generic [ref=e1190]: (ctx
+                  - text: "*application.Context) {"
+                - generic [ref=e1191]: enabled := ctx.ClickedMenuItem().Checked()
+                - generic [ref=e1193]: t.setStartAtLogin(enabled)
+                - generic [ref=e1195]: "})"
+                - generic [ref=e1200]: t.menu.AddSeparator()
+                - generic [ref=e1204]: // Quit
+                - generic [ref=e1207]:
+                  - text: t.menu.Add("Quit").OnClick(func
+                  - generic [ref=e1208]: (ctx
+                  - text: "*application.Context) {"
+                - generic [ref=e1209]: t.app.Quit()
+                - generic [ref=e1211]: "})"
+                - generic [ref=e1216]: t.systray.SetMenu(t.menu)
+                - generic [ref=e1218]: "}"
+                - generic [ref=e1223]:
+                  - text: func
+                  - generic [ref=e1224]: (t
+                  - text: "*TrayApp) toggleActive() {"
+                - generic [ref=e1225]: t.isActive = !t.isActive
+                - generic [ref=e1227]: t.updateTray()
+                - generic [ref=e1229]: "}"
+                - generic [ref=e1234]:
+                  - text: func
+                  - generic [ref=e1235]: (t
+                  - text: "*TrayApp) updateTray() {"
+                - generic [ref=e1236]: "if t.isActive {"
+                - generic [ref=e1238]: t.systray.SetIcon(iconActive)
+                - generic [ref=e1240]: t.systray.SetLabel("Active")
+                - generic [ref=e1242]: "} else {"
+                - generic [ref=e1245]: t.systray.SetIcon(icon)
+                - generic [ref=e1247]: t.systray.SetLabel("Inactive")
+                - generic [ref=e1249]: "}"
+                - generic [ref=e1254]: // Rebuild menu with new status
+                - generic [ref=e1256]: t.createMenu()
+                - generic [ref=e1258]: "}"
+                - generic [ref=e1263]:
+                  - text: func
+                  - generic [ref=e1264]: (t
+                  - text: "*TrayApp) backgroundTask() {"
+                - generic [ref=e1265]: ticker := time.NewTicker(5 * time.Second)
+                - generic [ref=e1267]: defer ticker.Stop()
+                - generic [ref=e1271]: "for range ticker.C {"
+                - generic [ref=e1273]: "if t.isActive {"
+                - generic [ref=e1275]: fmt.Println("Background task running...")
+                - generic [ref=e1277]: // Do work
+                - generic [ref=e1279]: "}"
+                - generic [ref=e1282]: "}"
+                - generic [ref=e1285]: "}"
+                - generic [ref=e1290]:
+                  - text: func
+                  - generic [ref=e1291]: (t
+                  - text: "*TrayApp) setStartAtLogin"
+                  - generic [ref=e1292]: (enabled
+                  - text: "bool) {"
+                - generic [ref=e1293]: // Implementation varies by platform
+                - generic [ref=e1295]: "fmt.Printf(\"Start at login: %v\\n\", enabled)"
+                - generic [ref=e1297]: "}"
+              - button "Copy to clipboard" [ref=e1300] [cursor=pointer]
+            - generic [ref=e1302]:
+              - heading "Visibility Control" [level=2] [ref=e1303]
+              - link "Section titled “Visibility Control”" [ref=e1304] [cursor=pointer]:
+                - /url: "#visibility-control"
+            - paragraph [ref=e1309]: "Show/hide the tray icon dynamically:"
+            - figure [ref=e1311]:
+              - code [ref=e1313]:
+                - generic [ref=e1314]: // Hide tray icon
+                - generic [ref=e1316]: systray.Hide()
+                - generic [ref=e1320]: // Show tray icon
+                - generic [ref=e1322]: systray.Show()
+              - button "Copy to clipboard" [ref=e1325] [cursor=pointer]
+            - paragraph [ref=e1327]:
+              - text: There is no
+              - code [ref=e1328]: IsVisible()
+              - text: getter — track visibility in your own application state if you need it.
+            - paragraph [ref=e1329]:
+              - strong [ref=e1330]: "Platform Support:"
+            - table [ref=e1331]:
+              - rowgroup [ref=e1332]:
+                - row [ref=e1333]:
+                  - columnheader "Platform" [ref=e1334]
+                  - columnheader "Hide()" [ref=e1335]
+                  - columnheader "Show()" [ref=e1336]
+                  - columnheader "Notes" [ref=e1337]
+              - rowgroup [ref=e1338]:
+                - row [ref=e1339]:
+                  - cell [ref=e1340]:
+                    - strong [ref=e1341]: Windows
+                  - cell "✅" [ref=e1342]
+                  - cell "✅" [ref=e1343]
+                  - cell "Fully functional - icon appears/disappears from notification area" [ref=e1344]
+                - row [ref=e1345]:
+                  - cell [ref=e1346]:
+                    - strong [ref=e1347]: macOS
+                  - cell "✅" [ref=e1348]
+                  - cell "✅" [ref=e1349]
+                  - cell "Menu bar item shows/hides" [ref=e1350]
+                - row [ref=e1351]:
+                  - cell [ref=e1352]:
+                    - strong [ref=e1353]: Linux
+                  - cell "✅" [ref=e1354]
+                  - cell "✅" [ref=e1355]
+                  - cell "Varies by desktop environment" [ref=e1356]
+            - paragraph [ref=e1357]:
+              - strong [ref=e1358]: "Use cases:"
+            - list [ref=e1359]:
+              - listitem [ref=e1360]: Temporarily hide tray icon based on user preference
+              - listitem [ref=e1361]: Headless mode with tray icon appearing only when needed
+              - listitem [ref=e1362]: Toggle visibility based on application state
+            - paragraph [ref=e1363]:
+              - strong [ref=e1364]: "Example - Conditional Tray Visibility:"
+            - figure [ref=e1366]:
+              - code [ref=e1368]:
+                - generic [ref=e1370]:
+                  - text: func
+                  - generic [ref=e1371]: (t
+                  - text: "*TrayApp) setTrayVisibility"
+                  - generic [ref=e1372]: (visible
+                  - text: "bool) {"
+                - generic [ref=e1373]: "if visible {"
+                - generic [ref=e1375]: t.systray.Show()
+                - generic [ref=e1377]: "} else {"
+                - generic [ref=e1380]: t.systray.Hide()
+                - generic [ref=e1382]: "}"
+                - generic [ref=e1385]: "}"
+                - generic [ref=e1389]: // Show tray only when updates are available
+                - generic [ref=e1392]:
+                  - text: func
+                  - generic [ref=e1393]: (t
+                  - text: "*TrayApp) checkForUpdates() {"
+                - generic [ref=e1394]: "if hasUpdates {"
+                - generic [ref=e1396]: t.systray.Show()
+                - generic [ref=e1398]: t.systray.SetLabel("Update Available")
+                - generic [ref=e1400]: "} else {"
+                - generic [ref=e1403]: t.systray.Hide()
+                - generic [ref=e1405]: "}"
+                - generic [ref=e1408]: "}"
+              - button "Copy to clipboard" [ref=e1411] [cursor=pointer]
+            - generic [ref=e1413]:
+              - heading "Cleanup" [level=2] [ref=e1414]
+              - link "Section titled “Cleanup”" [ref=e1415] [cursor=pointer]:
+                - /url: "#cleanup"
+            - paragraph [ref=e1420]: "Destroy the tray icon when done:"
+            - figure [ref=e1422]:
+              - code [ref=e1424]:
+                - generic [ref=e1425]: // In OnShutdown
+                - generic [ref=e1427]: "app := application.New(application.Options{"
+                - generic [ref=e1429]: "OnShutdown: func() {"
+                - generic [ref=e1431]: "if systray != nil {"
+                - generic [ref=e1433]: systray.Destroy()
+                - generic [ref=e1435]: "}"
+                - generic [ref=e1438]: "},"
+                - generic [ref=e1441]: "})"
+              - button "Copy to clipboard" [ref=e1444] [cursor=pointer]
+            - paragraph [ref=e1446]:
+              - strong [ref=e1447]: "Important:"
+              - text: Always destroy system tray on shutdown to release resources.
+            - generic [ref=e1448]:
+              - heading "Best Practices" [level=2] [ref=e1449]
+              - link "Section titled “Best Practices”" [ref=e1450] [cursor=pointer]:
+                - /url: "#best-practices"
+            - generic [ref=e1455]:
+              - heading "✅ Do" [level=3] [ref=e1456]
+              - link "Section titled “✅ Do”" [ref=e1457] [cursor=pointer]:
+                - /url: "#-do"
+            - list [ref=e1462]:
+              - listitem [ref=e1463]:
+                - strong [ref=e1464]: Use template icons on macOS
+                - text: "- Adapts to dark mode"
+              - listitem [ref=e1465]:
+                - strong [ref=e1466]: Keep labels short
+                - text: "- 3-5 characters maximum"
+              - listitem [ref=e1467]:
+                - strong [ref=e1468]: Provide tooltips on Windows
+                - text: "- Helps users identify your app"
+              - listitem [ref=e1469]:
+                - strong [ref=e1470]: Test on all platforms
+                - text: "- Behaviour varies"
+              - listitem [ref=e1471]:
+                - strong [ref=e1472]: Handle clicks appropriately
+                - text: "- Left-click for main action, right-click for menu"
+              - listitem [ref=e1473]:
+                - strong [ref=e1474]: Update icon for status
+                - text: "- Visual feedback is important"
+              - listitem [ref=e1475]:
+                - strong [ref=e1476]: Destroy on shutdown
+                - text: "- Release resources"
+            - generic [ref=e1477]:
+              - heading "❌ Don’t" [level=3] [ref=e1478]
+              - link "Section titled “❌ Don’t”" [ref=e1479] [cursor=pointer]:
+                - /url: "#-dont"
+            - list [ref=e1484]:
+              - listitem [ref=e1485]:
+                - strong [ref=e1486]: Don’t use large icons
+                - text: "- Follow platform guidelines"
+              - listitem [ref=e1487]:
+                - strong [ref=e1488]: Don’t use long labels
+                - text: "- Gets truncated"
+              - listitem [ref=e1489]:
+                - strong [ref=e1490]: Don’t forget dark mode
+                - text: "- Test on Windows and macOS dark mode"
+              - listitem [ref=e1491]:
+                - strong [ref=e1492]: Don’t block click handlers
+                - text: "- Keep them fast"
+              - listitem [ref=e1493]:
+                - strong [ref=e1494]: Don’t forget menu.Update()
+                - text: "- After changing menu state"
+              - listitem [ref=e1495]:
+                - strong [ref=e1496]: Don’t assume tray support
+                - text: "- Some Linux DEs don’t support it"
+            - generic [ref=e1497]:
+              - heading "Troubleshooting" [level=2] [ref=e1498]
+              - link "Section titled “Troubleshooting”" [ref=e1499] [cursor=pointer]:
+                - /url: "#troubleshooting"
+            - generic [ref=e1504]:
+              - heading "Tray Icon Not Appearing" [level=3] [ref=e1505]
+              - link "Section titled “Tray Icon Not Appearing”" [ref=e1506] [cursor=pointer]:
+                - /url: "#tray-icon-not-appearing"
+            - paragraph [ref=e1511]:
+              - strong [ref=e1512]: "Possible causes:"
+            - list [ref=e1513]:
+              - listitem [ref=e1514]: Icon format not supported
+              - listitem [ref=e1515]: Icon size too large/small
+              - listitem [ref=e1516]: System tray not supported (Linux)
+            - paragraph [ref=e1517]:
+              - strong [ref=e1518]: "Solution:"
+            - paragraph [ref=e1519]:
+              - text: There is no
+              - code [ref=e1520]: SystemTraySupported()
+              - text: "helper; instead create the tray, check the platform, and degrade gracefully:"
+            - figure [ref=e1522]:
+              - code [ref=e1524]:
+                - generic [ref=e1525]: "// Probe support: on Linux without a notification-area extension, the tray"
+                - generic [ref=e1527]: // will simply not appear. Defensive code can fall back to window-only mode
+                - generic [ref=e1529]: // based on runtime.GOOS or after a short timeout if no tray events arrive.
+                - generic [ref=e1531]: systray := app.SystemTray.New()
+                - generic [ref=e1533]: systray.SetIcon(iconBytes)
+              - button "Copy to clipboard" [ref=e1536] [cursor=pointer]
+            - generic [ref=e1538]:
+              - heading "Icon Looks Wrong on macOS" [level=3] [ref=e1539]
+              - link "Section titled “Icon Looks Wrong on macOS”" [ref=e1540] [cursor=pointer]:
+                - /url: "#icon-looks-wrong-on-macos"
+            - paragraph [ref=e1545]:
+              - strong [ref=e1546]: "Cause:"
+              - text: Not using template icon
+            - paragraph [ref=e1547]:
+              - strong [ref=e1548]: "Solution:"
+            - figure [ref=e1550]:
+              - code [ref=e1552]:
+                - generic [ref=e1553]: // Use template icon
+                - generic [ref=e1555]: systray.SetTemplateIcon(iconBytes)
+                - generic [ref=e1559]: // Or design icon as template (black + transparent)
+              - button "Copy to clipboard" [ref=e1562] [cursor=pointer]
+            - generic [ref=e1564]:
+              - heading "Menu Not Updating" [level=3] [ref=e1565]
+              - link "Section titled “Menu Not Updating”" [ref=e1566] [cursor=pointer]:
+                - /url: "#menu-not-updating"
+            - paragraph [ref=e1571]:
+              - strong [ref=e1572]: "Cause:"
+              - text: Forgot to call
+              - code [ref=e1573]: menu.Update()
+            - paragraph [ref=e1574]:
+              - strong [ref=e1575]: "Solution:"
+            - figure [ref=e1577]:
+              - code [ref=e1579]:
+                - generic [ref=e1580]: menuItem.SetLabel("New Label")
+                - generic [ref=e1582]: menu.Update() // Add this!
+              - button "Copy to clipboard" [ref=e1585] [cursor=pointer]
+            - generic [ref=e1587]:
+              - heading "Next Steps" [level=2] [ref=e1588]
+              - link "Section titled “Next Steps”" [ref=e1589] [cursor=pointer]:
+                - /url: "#next-steps"
+            - generic [ref=e1594]:
+              - article [ref=e1595]:
+                - paragraph [ref=e1596]:
+                  - generic [ref=e1599]: Menu Reference
+                - generic [ref=e1600]:
+                  - paragraph [ref=e1601]: Complete reference for menu item types and properties.
+                  - paragraph [ref=e1602]:
+                    - link "Learn More →" [ref=e1603] [cursor=pointer]:
+                      - /url: /features/menus/reference
+              - article [ref=e1604]:
+                - paragraph [ref=e1605]:
+                  - generic [ref=e1608]: Application Menus
+                - generic [ref=e1609]:
+                  - paragraph [ref=e1610]: Create application menu bars.
+                  - paragraph [ref=e1611]:
+                    - link "Learn More →" [ref=e1612] [cursor=pointer]:
+                      - /url: /features/menus/application
+              - article [ref=e1613]:
+                - paragraph [ref=e1614]:
+                  - generic [ref=e1617]: Context Menus
+                - generic [ref=e1618]:
+                  - paragraph [ref=e1619]: Create right-click context menus.
+                  - paragraph [ref=e1620]:
+                    - link "Learn More →" [ref=e1621] [cursor=pointer]:
+                      - /url: /features/menus/context
+              - article [ref=e1622]:
+                - paragraph [ref=e1623]:
+                  - generic [ref=e1626]: System Tray Example
+                - generic [ref=e1627]:
+                  - paragraph [ref=e1628]: Explore a complete system tray application.
+                  - paragraph [ref=e1629]:
+                    - link "Learn More →" [ref=e1630] [cursor=pointer]:
+                      - /url: https://github.com/wailsapp/wails/tree/master/v3/examples/systray-basic
+            - separator [ref=e1631]
+            - paragraph [ref=e1632]:
+              - strong [ref=e1633]: Questions?
+              - text: Ask in
+              - link "Discord" [ref=e1634] [cursor=pointer]:
+                - /url: https://discord.gg/JDdSxwjhGf
+              - text: or check the
+              - link "system tray examples" [ref=e1635] [cursor=pointer]:
+                - /url: https://github.com/wailsapp/wails/tree/master/v3/examples/systray-basic
+              - text: .
+          - generic [ref=e1636]:
+            - generic [ref=e1637]:
+              - link "Edit page" [ref=e1638] [cursor=pointer]:
+                - /url: https://github.com/wailsapp/wails/edit/master/docs/src/content/docs/features/menus/systray.mdx
+              - paragraph [ref=e1641]:
+                - text: "Last updated:"
+                - time [ref=e1642]: Sep 10, 2026
+            - generic [ref=e1643]:
+              - link "Previous Context Menus" [ref=e1644] [cursor=pointer]:
+                - /url: /features/menus/context
+              - link "Next Menu Reference" [ref=e1648] [cursor=pointer]:
+                - /url: /features/menus/reference

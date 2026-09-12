@@ -6,54 +6,62 @@ import (
 	"os"
 	"os/exec"
 	"syscall"
+
+	"golang.org/x/sys/unix"
 )
 
 type linuxElevator struct{}
 
 func currentElevator() Elevator { return linuxElevator{} }
 
+// IsAdmin reports whether this process already carries the one capability
+// every privileged tunnel/adapter/routing operation in tunnel/tunnel_linux.go
+// needs (CAP_NET_ADMIN) - not whether it's root. Mirrors the Capget pattern
+// golang.org/x/sys/unix itself uses internally for the same kind of check
+// (see isCapDacOverrideSet in its syscall_linux.go).
 func (linuxElevator) IsAdmin() bool {
-	return os.Geteuid() == 0
-}
-
-// sessionEnvVars are forwarded explicitly to the elevated process via
-// `pkexec env VAR=value ...` because pkexec scrubs almost the entire
-// environment by default - without them a GUI child fails with GTK's
-// "Failed to open display" even though the process is root and otherwise
-// runs fine (root can read the invoking user's .Xauthority/Wayland socket
-// once it knows where to look; pkexec just doesn't tell it by default).
-// DBUS_SESSION_BUS_ADDRESS belongs here for the same reason: root has no
-// D-Bus session of its own (no /run/user/0/bus), so without this the system
-// tray's dbus.SessionBus() call fails silently (logged, not fatal) and the
-// tray icon never registers, even though the window renders fine.
-var sessionEnvVars = []string{"DISPLAY", "XAUTHORITY", "WAYLAND_DISPLAY", "XDG_RUNTIME_DIR", "DBUS_SESSION_BUS_ADDRESS"}
-
-// RelaunchElevated re-execs the current process under pkexec, which shows a
-// graphical polkit prompt - the closest Linux equivalent to Windows's UAC
-// self-relaunch. It replaces the current process image (rather than
-// spawning a detached child) so the elevated process inherits this one's
-// stdio/tty directly, matching how a TUI app is expected to keep running in
-// the same terminal after relaunch.
-func (linuxElevator) RelaunchElevated() bool {
-	pkexecPath, err := exec.LookPath("pkexec")
-	if err != nil {
+	hdr := unix.CapUserHeader{Version: unix.LINUX_CAPABILITY_VERSION_3}
+	var data [2]unix.CapUserData
+	if err := unix.Capget(&hdr, &data[0]); err != nil {
 		return false
 	}
+	return data[0].Effective&(1<<unix.CAP_NET_ADMIN) != 0
+}
+
+// RelaunchElevated grants this binary the CAP_NET_ADMIN file capability
+// (one pkexec prompt, authenticating a single short-lived `setcap` command,
+// not the whole GUI) and then re-execs the same binary directly - no pkexec
+// wrapper this time - so the fresh process picks up the capability from the
+// file's metadata. A process can't gain a file capability retroactively;
+// it's computed from the executable's extended attributes at exec() time,
+// which is also why rebuilding the binary (a new inode) requires repeating
+// this once.
+//
+// Deliberately NOT the old model of pkexec-relaunching the entire process as
+// root: a root GUI process cannot join the invoking user's own D-Bus session
+// bus (confirmed empirically - see CLAUDE.md's operational caveat), which
+// broke the system tray and Wails' SingleInstance lock. Granting just the
+// capability keeps this process's identity as the invoking user throughout,
+// so that boundary never comes up.
+func (linuxElevator) RelaunchElevated() bool {
 	exePath, err := os.Executable()
 	if err != nil {
 		return false
 	}
-
-	argv := []string{"pkexec", "env"}
-	for _, name := range sessionEnvVars {
-		if v, ok := os.LookupEnv(name); ok {
-			argv = append(argv, name+"="+v)
-		}
+	pkexecPath, err := exec.LookPath("pkexec")
+	if err != nil {
+		return false
 	}
-	argv = append(argv, exePath)
-	argv = append(argv, os.Args[1:]...)
+	setcapPath, err := exec.LookPath("setcap")
+	if err != nil {
+		return false
+	}
 
-	if err := syscall.Exec(pkexecPath, argv, os.Environ()); err != nil {
+	if err := exec.Command(pkexecPath, setcapPath, "cap_net_admin+ep", exePath).Run(); err != nil {
+		return false
+	}
+
+	if err := syscall.Exec(exePath, os.Args, os.Environ()); err != nil {
 		return false
 	}
 	// syscall.Exec only returns on error; a successful call never reaches here.
@@ -61,5 +69,8 @@ func (linuxElevator) RelaunchElevated() bool {
 }
 
 func (linuxElevator) ShowElevationRequiredMessage() {
-	// Terminal TUI - the stderr message main.go already prints is sufficient.
+	// No native dialog on this path (unlike Windows) - the stderr message
+	// main.go already prints before exiting is the only feedback the user
+	// gets here, which is acceptable since this only triggers when pkexec
+	// itself is missing or its one-line setcap grant failed/was cancelled.
 }
