@@ -1,0 +1,18 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+
+/* Desk color behind the app window — the one literal color per TAILWIND_MAPPING.md */
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: #101220;
+}
+
+#app {
+  height: 100%;
+}

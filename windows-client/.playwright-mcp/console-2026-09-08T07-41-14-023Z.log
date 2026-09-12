@@ -1,0 +1,28 @@
+[     709ms] [WARNING] 
+%c⚠️ Browser Environment Detected %c
+
+%cOnly UI previews are available in the browser. For full functionality, please run the application in desktop mode.
+More information at: https://v3.wails.io/learn/build/#using-a-browser-for-development
+ background: #ffffff; color: #000000; font-weight: bold; padding: 4px 8px; border-radius: 4px; border: 2px solid #000000; background: transparent; color: #ffffff; font-style: italic; font-weight: bold; @ http://localhost:5183/@vite/client:532
+[     749ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5183/wails/runtime:0
+[     750ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5183/wails/runtime:0
+[     750ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5183/wails/runtime:0
+[     750ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5183/wails/runtime:0
+[     750ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5183/wails/runtime:0
+[     751ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5183/wails/runtime:0
+[     752ms] [WARNING] [Vue warn]: Unhandled error during execution of mounted hook 
+  at <App> @ http://localhost:5183/@vite/client:532
+[     753ms] [WARNING] [Vue warn]: Unhandled error during execution of mounted hook 
+  at <App> @ http://localhost:5183/@vite/client:532
+[     753ms] [WARNING] [Vue warn]: Unhandled error during execution of mounted hook 
+  at <App> @ http://localhost:5183/@vite/client:532
+[     759ms] Error
+    at runtimeCallWithID (http://localhost:5183/node_modules/.vite/deps/@wailsio_runtime.js?v=656e55fe:164:9)
+[     759ms] Error
+    at runtimeCallWithID (http://localhost:5183/node_modules/.vite/deps/@wailsio_runtime.js?v=656e55fe:164:9)
+[     759ms] Error
+    at runtimeCallWithID (http://localhost:5183/node_modules/.vite/deps/@wailsio_runtime.js?v=656e55fe:164:9)
+[     759ms] Error
+    at runtimeCallWithID (http://localhost:5183/node_modules/.vite/deps/@wailsio_runtime.js?v=656e55fe:164:9)
+[     759ms] Error
+    at runtimeCallWithID (http://localhost:5183/node_modules/.vite/deps/@wailsio_runtime.js?v=656e55fe:164:9)

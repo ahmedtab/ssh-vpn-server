@@ -1,0 +1,22 @@
+[      69ms] [WARNING] 
+%c⚠️ Browser Environment Detected %c
+
+%cOnly UI previews are available in the browser. For full functionality, please run the application in desktop mode.
+More information at: https://v3.wails.io/learn/build/#using-a-browser-for-development
+ background: #ffffff; color: #000000; font-weight: bold; padding: 4px 8px; border-radius: 4px; border: 2px solid #000000; background: transparent; color: #ffffff; font-style: italic; font-weight: bold; @ http://localhost:5187/assets/index-BHVYUrai.js:1
+[      84ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5187/wails/runtime:0
+[      84ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5187/wails/runtime:0
+[      84ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5187/wails/runtime:0
+[      84ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5187/wails/runtime:0
+[      84ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5187/wails/runtime:0
+[      84ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5187/wails/runtime:0
+[      85ms] [ERROR] Error
+    at Yf (http://localhost:5187/assets/index-BHVYUrai.js:2:81770) @ http://localhost:5187/assets/index-BHVYUrai.js:0
+[      85ms] [ERROR] Error
+    at Yf (http://localhost:5187/assets/index-BHVYUrai.js:2:81770) @ http://localhost:5187/assets/index-BHVYUrai.js:0
+[      86ms] [ERROR] Error
+    at Yf (http://localhost:5187/assets/index-BHVYUrai.js:2:81770) @ http://localhost:5187/assets/index-BHVYUrai.js:0
+[      86ms] Error
+    at Yf (http://localhost:5187/assets/index-BHVYUrai.js:2:81770)
+[      86ms] Error
+    at Yf (http://localhost:5187/assets/index-BHVYUrai.js:2:81770)

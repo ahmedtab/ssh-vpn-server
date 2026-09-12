@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=LinkThings Client
+Comment=SSH VPN Client for Windows
+# The Exec line includes %u to pass the URL to the application
+Exec=/usr/local/bin/linkthings-client %u
+Terminal=false
+Type=Application
+Icon=linkthings-client
+Categories=Utility;
+StartupWMClass=linkthings-client
+
+ 

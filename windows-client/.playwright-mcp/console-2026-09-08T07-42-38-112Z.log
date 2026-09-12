@@ -1,0 +1,24 @@
+[      78ms] [WARNING] 
+%c⚠️ Browser Environment Detected %c
+
+%cOnly UI previews are available in the browser. For full functionality, please run the application in desktop mode.
+More information at: https://v3.wails.io/learn/build/#using-a-browser-for-development
+ background: #ffffff; color: #000000; font-weight: bold; padding: 4px 8px; border-radius: 4px; border: 2px solid #000000; background: transparent; color: #ffffff; font-style: italic; font-weight: bold; @ http://localhost:5184/assets/index--uFtGe08.js:1
+[      82ms] TypeError: Cannot read properties of undefined (reading 'createFrom')
+    at http://localhost:5184/assets/index--uFtGe08.js:7:15045
+[    7027ms] [WARNING] 
+%c⚠️ Browser Environment Detected %c
+
+%cOnly UI previews are available in the browser. For full functionality, please run the application in desktop mode.
+More information at: https://v3.wails.io/learn/build/#using-a-browser-for-development
+ background: #ffffff; color: #000000; font-weight: bold; padding: 4px 8px; border-radius: 4px; border: 2px solid #000000; background: transparent; color: #ffffff; font-style: italic; font-weight: bold; @ http://localhost:5184/assets/index--uFtGe08.js:1
+[    7035ms] TypeError: Cannot read properties of undefined (reading 'createFrom')
+    at http://localhost:5184/assets/index--uFtGe08.js:7:15045
+[    8867ms] [WARNING] 
+%c⚠️ Browser Environment Detected %c
+
+%cOnly UI previews are available in the browser. For full functionality, please run the application in desktop mode.
+More information at: https://v3.wails.io/learn/build/#using-a-browser-for-development
+ background: #ffffff; color: #000000; font-weight: bold; padding: 4px 8px; border-radius: 4px; border: 2px solid #000000; background: transparent; color: #ffffff; font-style: italic; font-weight: bold; @ http://localhost:5184/assets/index--uFtGe08.js:1
+[    8871ms] TypeError: Cannot read properties of undefined (reading 'createFrom')
+    at http://localhost:5184/assets/index--uFtGe08.js:7:15045

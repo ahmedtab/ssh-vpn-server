@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MsixPackagingToolTemplate
+    xmlns="http://schemas.microsoft.com/msix/packaging/msixpackagingtool/template/2022">
+    <Settings
+        AllowTelemetry="false"
+        ApplyACLsToPackageFiles="true"
+        GenerateCommandLineFile="true"
+        AllowPromptForPassword="false">
+    </Settings>
+    <Installer
+        Path="linkthings-client"
+        Arguments=""
+        InstallLocation="C:\Program Files\LinkThings\LinkThings Client">
+    </Installer>
+    <PackageInformation
+        PackageName="LinkThings Client"
+        PackageDisplayName="LinkThings Client"
+        PublisherName="CN=LinkThings"
+        PublisherDisplayName="LinkThings"
+        Version="1.0.0.0"
+        PackageDescription="SSH VPN Client for Windows">
+        <Capabilities>
+            <Capability Name="runFullTrust" />
+            
+        </Capabilities>
+        <Applications>
+            <Application
+                Id="io.linkthings.client"
+                Description="SSH VPN Client for Windows"
+                DisplayName="LinkThings Client"
+                ExecutableName="linkthings-client"
+                EntryPoint="Windows.FullTrustApplication">
+                
+            </Application>
+        </Applications>
+        <Resources>
+            <Resource Language="en-us" />
+        </Resources>
+        <Dependencies>
+            <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.19041.0" />
+        </Dependencies>
+        <Properties>
+            <Framework>false</Framework>
+            <DisplayName>LinkThings Client</DisplayName>
+            <PublisherDisplayName>LinkThings</PublisherDisplayName>
+            <Description>SSH VPN Client for Windows</Description>
+            <Logo>Assets\AppIcon.png</Logo>
+        </Properties>
+    </PackageInformation>
+    <SaveLocation PackagePath="linkthings-client-v3.msix" />
+    <PackageIntegrity>
+        <CertificatePath></CertificatePath>
+    </PackageIntegrity>
+</MsixPackagingToolTemplate>

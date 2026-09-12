@@ -1,0 +1,15 @@
+{
+	"fixed": {
+		"file_version": "1.0.0"
+	},
+	"info": {
+		"0000": {
+			"ProductVersion": "1.0.0",
+			"CompanyName": "LinkThings",
+			"FileDescription": "SSH VPN Client for Windows",
+			"LegalCopyright": "(c) 2026 LinkThings. All rights reserved.",
+			"ProductName": "LinkThings Client",
+			"Comments": "This is a comment"
+		}
+	}
+}

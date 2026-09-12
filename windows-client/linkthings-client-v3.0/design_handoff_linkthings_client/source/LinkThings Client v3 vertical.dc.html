@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#161826"/><g fill="none" stroke="#9184d9" stroke-width="4" stroke-linecap="round"><path d="M50 30v40"/></g><circle cx="50" cy="30" r="7" fill="#9184d9"/><circle cx="50" cy="70" r="7" fill="#423a6a" stroke="#9184d9" stroke-width="3"/></svg></template>
+<helmet>
+<link rel="stylesheet" href="_ds/nocturne-530844bb-9265-4115-979f-ccd4d3db4215/styles.css">
+<script src="_ds/nocturne-530844bb-9265-4115-979f-ccd4d3db4215/_ds_bundle.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<style>
+body{margin:0;background:#101220;display:grid;place-items:start center;padding:24px 18px 32px}
+@keyframes ltflowv{to{background-position-y:16px}}
+@keyframes ltpulse{0%,100%{opacity:.4}50%{opacity:1}}
+a{color:var(--color-accent)}a:hover{color:var(--color-accent-400)}
+::-webkit-scrollbar{width:7px}::-webkit-scrollbar-thumb{background:#3f424d;border-radius:7px}::-webkit-scrollbar-track{background:transparent}
+</style>
+</helmet>
+
+<div style="width:412px;max-width:100%;border-radius:14px;overflow:hidden;background:#161826;box-shadow:0 0 0 1px #3f424d,0 24px 64px rgba(0,0,0,.6);font-family:var(--font-body);color:#e9e9ed;display:flex;flex-direction:column;min-height:684px">
+
+  <div style="display:flex;align-items:center;gap:9px;padding:11px 13px;box-shadow:inset 0 -1px 0 rgba(233,233,237,.07)">
+    <i class="ph-fill ph-shield-check" style="font-size:17px;color:var(--color-accent)"></i>
+    <span style="font-family:var(--font-heading);font-weight:500;font-size:14px;letter-spacing:-.01em">LinkThings</span>
+    <span style="display:inline-flex;align-items:center;gap:6px;margin-left:auto;padding:4px 9px;border-radius:999px;font-size:11px;background:{{ status.pillBg }};color:{{ status.pillFg }};box-shadow:inset 0 0 0 1px {{ status.pillEdge }}">
+      <span style="width:6px;height:6px;border-radius:50%;background:{{ status.dot }};animation:{{ status.dotAnim }}"></span>{{ status.label }}
+    </span>
+    
+  </div>
+
+  
+
+  <div style="flex:1;min-height:0;overflow:auto">
+
+    <sc-if value="{{ isConnection }}" hint-placeholder-val="{{ true }}">
+    <div style="position: relative; display: flex; flex-direction: column; gap: 14px; padding: 14px 14px 18px; height: 539px; min-height: 0; width: 404px">
+
+      <div style="position:relative;z-index:12">
+        <div onClick="{{ togglePicker }}" style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:10px;cursor:pointer;background:#1c1e2c;box-shadow:0 0 0 1px {{ picker.edge }}" style-hover="box-shadow:0 0 0 1px #595d6c">
+          <i class="ph ph-stack" style="font-size:15px;color:var(--color-accent)"></i>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:500;line-height:1.25">{{ p.name }}</div>
+            <div style="font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:#75798c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.gateway }} · tun{{ p.sshTunnel }} · {{ tunnelModeTag }}</div>
+          </div>
+          <i class="ph ph-caret-up-down" style="font-size:13px;color:#75798c"></i>
+        </div>
+
+        <sc-if value="{{ pickerOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;top:calc(100% + 6px);left:0;right:0;display:flex;flex-direction:column;gap:2px;padding:6px;border-radius:10px;background:#232532;box-shadow:0 0 0 1px #595d6c,0 16px 34px rgba(0,0,0,.6);max-height:236px;overflow:auto">
+            <sc-for list="{{ profileList }}" as="it" hint-placeholder-count="4">
+              <div onClick="{{ it.select }}" style="display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:7px;cursor:pointer;background:{{ it.bg }}" style-hover="background:rgba(233,233,237,.06)">
+                <span style="width:6px;height:6px;border-radius:50%;flex:none;background:{{ it.dot }}"></span>
+                <span style="flex:1;font-size:12.5px;color:{{ it.fg }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ it.name }}</span>
+                <span style="font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#75798c;flex:none">tun{{ it.slot }}</span>
+              </div>
+            </sc-for>
+            <div onClick="{{ newProfile }}" style="display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:7px;cursor:pointer;color:#b5abfc;font-size:12px" style-hover="background:rgba(145,132,217,.12)">
+              <i class="ph ph-plus" style="font-size:13px"></i>New profile
+            </div>
+          </div>
+        </sc-if>
+      </div>
+
+      <sc-if value="{{ pickerOpen }}" hint-placeholder-val="{{ false }}">
+        <div onClick="{{ togglePicker }}" style="position:absolute;inset:0;z-index:10"></div>
+      </sc-if>
+
+      <div style="display: flex; flex-direction: column; gap: 14px; padding: 18px 16px; border-radius: 12px; background: radial-gradient(120% 80% at 50% 0%,#20233a,#191b29 74%); box-shadow: 0 0 0 1px #3f424d; width: 382px; height: 454px">
+
+        <div style="display:flex;flex-direction:column;align-items:stretch;gap:0">
+          <sc-for list="{{ hops }}" as="hop" hint-placeholder-count="5">
+            <sc-if value="{{ hop.isNode }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;align-items:center;gap:11px">
+                <div style="width:38px;height:38px;flex:none;border-radius:10px;display:grid;place-items:center;font-size:17px;background:#232532;box-shadow:0 0 0 1px {{ hop.edge }},{{ hop.glow }};color:{{ hop.fg }}"><i class="{{ hop.icon }}"></i></div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:12.5px;font-weight:500;line-height:1.25">{{ hop.title }}</div>
+                  <div style="font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:#75798c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ hop.addr }}</div>
+                </div>
+                <span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#595d6c;flex:none">{{ hop.side }}</span>
+              </div>
+            </sc-if>
+            <sc-if value="{{ hop.isLink }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:11px;height:34px">
+                <div style="width:38px;flex:none;display:flex;justify-content:center;height:100%">
+                  <div style="width:2px;height:100%;position:relative;background:linear-gradient(to bottom,transparent,rgba(233,233,237,.16) 6px,rgba(233,233,237,.16) calc(100% - 6px),transparent)">
+                    <div style="position:absolute;inset:0;background:repeating-linear-gradient(to bottom,var(--color-accent) 0 7px,transparent 7px 16px);background-position:0 0;animation:ltflowv .8s linear infinite;opacity:{{ flowOpacity }}"></div>
+                  </div>
+                </div>
+                <span style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#75798c">{{ hop.cap }}</span>
+              </div>
+            </sc-if>
+          </sc-for>
+        </div>
+
+        <div style="height:1px;background:linear-gradient(to right,transparent,rgba(233,233,237,.13) 30px,rgba(233,233,237,.13) calc(100% - 30px),transparent)"></div>
+
+        <div>
+          <div style="font-family:var(--font-heading);font-weight:500;font-size:18px;letter-spacing:-.01em">{{ status.headline }}</div>
+          <div style="font-size:12px;color:#9397ab;text-wrap:pretty">{{ status.sub }}</div>
+        </div>
+
+        <div onClick="{{ toggleConn }}" class="btn btn-primary" style="width: 348px; height: 67px; font-size: 14px; border-radius: 10px; background: {{ btn.bg }}; border-color: {{ btn.edge }}; color: {{ btn.fg }}">
+          <i class="{{ btn.icon }}" style="font-size:16px"></i>{{ btn.label }}
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">
+          <sc-for list="{{ stats }}" as="s" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column;gap:1px">
+              <span style="font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#75798c">{{ s.label }}</span>
+              <span style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:{{ s.color }}">{{ s.value }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <sc-if value="{{ alert.show }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:10px;background:rgba(145,132,217,.09);box-shadow:inset 0 0 0 1px rgba(145,132,217,.28)">
+          <i class="ph ph-key" style="font-size:15px;color:var(--color-accent);flex:none"></i>
+          <span style="flex:1;font-size:11.5px;color:#d2cefd;text-wrap:pretty">{{ alert.text }}</span>
+          <div onClick="{{ alert.go }}" class="btn btn-ghost" style="font-size:11.5px;flex:none">Fix</div>
+        </div>
+      </sc-if>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ isProfiles }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;gap:11px;padding:14px 14px 18px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <h5 style="margin:0">Profiles</h5>
+        <span style="flex:1;font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#595d6c"><br></span>
+        <div onClick="{{ newProfile }}" class="btn btn-primary" style="font-size:12px"><i class="ph ph-plus"></i>New</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:2px;padding:6px;border-radius:10px;background:#1c1e2c;box-shadow:0 0 0 1px #3f424d;max-height:140px;overflow-y:auto">
+        <sc-for list="{{ profileList }}" as="it" hint-placeholder-count="4">
+          <div onClick="{{ it.select }}" style="display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:7px;cursor:pointer;flex:none;background:{{ it.bg }};box-shadow:{{ it.edge }}" style-hover="background:rgba(233,233,237,.05)">
+            <span style="width:6px;height:6px;border-radius:50%;flex:none;background:{{ it.dot }}"></span>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:12.5px;color:{{ it.fg }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ it.name }}</div>
+              <div style="font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#75798c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ it.gateway }}</div>
+            </div>
+            <span style="font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#595d6c;flex:none">tun{{ it.slot }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;padding:13px 14px;border-radius:11px;background:#1c1e2c;box-shadow:0 0 0 1px #3f424d">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <span style="flex:1;font-size:12.5px;font-weight:500;font-family:var(--font-heading)">{{ p.name }}</span>
+          <span style="font-size:10.5px;color:#75798c">{{ dirtyTag }}</span>
+        </div>
+        <div class="field"><label>Name</label><input class="input" value="{{ p.name }}" onChange="{{ h.name }}" style="background:#161826;min-height:32px;font-size:13px"></div>
+        <div class="field"><label>Gateway host:port</label><input class="input" value="{{ p.gateway }}" onChange="{{ h.gateway }}" style="background:#161826;min-height:32px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px"></div>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px">
+          <div class="field"><label>Local IP (CIDR)</label><input class="input" value="{{ p.localIP }}" onChange="{{ h.localIP }}" style="background:#161826;min-height:32px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px"></div>
+          <div class="field"><label>Remote IP</label><input class="input" value="{{ p.remoteIP }}" onChange="{{ h.remoteIP }}" style="background:#161826;min-height:32px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px"></div>
+        </div>
+        <div class="field"><label>LAN subnet</label><input class="input" value="{{ p.lanSubnet }}" onChange="{{ h.lanSubnet }}" style="background:#161826;min-height:32px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px"></div>
+        <div style="display:grid;grid-template-columns:72px 72px minmax(0,1fr);gap:9px">
+          <div class="field"><label>Slot</label><input class="input" type="number" min="0" max="15" value="{{ p.sshTunnel }}" onChange="{{ h.sshTunnel }}" style="background:#161826;min-height:32px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px"></div>
+          <div class="field"><label>MTU</label><input class="input" value="{{ p.mtu }}" onChange="{{ h.mtu }}" style="background:#161826;min-height:32px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px"></div>
+          <div class="field"><label>DNS</label><input class="input" value="{{ p.dns }}" onChange="{{ h.dns }}" placeholder="system DNS" style="background:#161826;min-height:32px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px"></div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;background:#161826;box-shadow:inset 0 0 0 1px rgba(233,233,237,.08)">
+          <div onClick="{{ toggleFull }}" style="width:36px;height:20px;border-radius:999px;flex:none;cursor:pointer;position:relative;background:{{ sw.track }};box-shadow:inset 0 0 0 1px {{ sw.edge }};transition:background .15s">
+            <span style="position:absolute;top:3px;left:{{ sw.knobLeft }};width:14px;height:14px;border-radius:50%;background:{{ sw.knob }};transition:left .15s"></span>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12.5px;font-weight:500">Full tunnel</div>
+            <div style="font-size:11px;color:#9397ab;text-wrap:pretty">{{ sw.note }}</div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:#9397ab">
+          <i class="ph ph-plugs-connected" style="font-size:14px;color:{{ prov.color }}"></i>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Auto-provisioning {{ prov.state }} · {{ prov.url }}</span>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:7px">
+          <div onClick="{{ save }}" class="btn btn-primary" style="flex:1;font-size:12.5px"><i class="ph ph-floppy-disk"></i>Save</div>
+          <div class="btn btn-secondary" style="font-size:12.5px;padding-inline:9px" title="Test"><i class="ph ph-plugs"></i></div>
+          <div class="btn btn-secondary" style="font-size:12.5px;padding-inline:9px" title="Duplicate"><i class="ph ph-copy"></i></div>
+          <div onClick="{{ askDelete }}" class="btn btn-secondary" style="font-size:12.5px;padding-inline:9px;color:#d98484;border-color:rgba(217,132,132,.3)" title="Delete"><i class="ph ph-trash"></i></div>
+        </div>
+        <span style="font-size:11px;color:{{ toast.color }};min-height:14px">{{ toast.text }}</span>
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ isKeys }}" hint-placeholder-val="{{ false }}">
+    <div style="display: flex; flex-direction: column; gap: 11px; padding: 14px 14px 18px; height: 546px; min-height: 0; overflow: hidden; width: 410px">
+      <div>
+        <h5 style="margin:0 0 1px">SSH key</h5>
+        <span style="font-size:11.5px;color:#9397ab">Hand the public line to whoever runs the gateway</span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:9px;padding:13px 14px;border-radius:11px;background:#1c1e2c;box-shadow:0 0 0 1px #3f424d;flex:none">
+        <div style="display:flex;gap:2px;padding:2px;border-radius:8px;background:#161826">
+          <sc-for list="{{ keyTabs }}" as="t" hint-placeholder-count="2">
+            <div onClick="{{ t.pick }}" style="flex:1;text-align:center;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:11.5px;background:{{ t.bg }};color:{{ t.fg }}">{{ t.label }}</div>
+          </sc-for>
+        </div>
+        <div style="font-size:10.5px;color:#75798c">{{ keyBlock.note }}</div>
+        <div style="padding:10px 12px;border-radius:9px;background:#12141f;box-shadow:inset 0 0 0 1px rgba(233,233,237,.08);font-family:ui-monospace,Menlo,monospace;font-size:11px;line-height:1.6;color:#cfd3e5;word-break:break-all"><span style="color:var(--color-accent-300)">{{ keyBlock.prefix }}</span>{{ keyBlock.body }}</div>
+        <div onClick="{{ copyBlock }}" class="btn btn-primary" style="width:100%;font-size:12.5px"><i class="{{ copy.icon }}"></i>{{ copy.label }}</div>
+        <div style="display:flex;gap:7px">
+          <div class="btn btn-secondary" style="flex:1;font-size:12px"><i class="ph ph-arrows-clockwise"></i>Regenerate</div>
+          <div class="btn btn-secondary" style="flex:1;font-size:12px"><i class="ph ph-upload-simple"></i>Import</div>
+          <div onClick="{{ toggleRegPicker }}" class="btn btn-secondary" style="font-size:12px;padding-inline:9px;color:{{ reg.triggerFg }};border-color:{{ reg.triggerEdge }}" title="Auto-register on a profile"><i class="ph ph-paper-plane-tilt"></i></div>
+        </div>
+        <sc-if value="{{ provisioned }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:2px">
+            
+            
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 7px; padding: 13px 14px; border-radius: 11px; background: #1c1e2c; box-shadow: 0 0 0 1px #3f424d; flex: 1; min-height: 0; overflow: hidden; height: 91px">
+        <div style="display:flex;align-items:center;gap:7px;flex:none">
+          <span style="flex:1;font-size:12.5px;font-weight:500">Authorized on</span>
+          <span style="font-size:11px;color:#75798c">{{ installedCount }}</span>
+        </div>
+        <div style="display:flex;flex-direction:column;flex:1;min-height:0;overflow-y:auto">
+          <sc-for list="{{ installList }}" as="it" hint-placeholder-count="4">
+            <div style="display:flex;align-items:center;gap:8px;padding:5px 0;flex:none;background:linear-gradient(to right,rgba(233,233,237,.07),rgba(233,233,237,.07)) no-repeat bottom/100% 1px">
+              <i class="{{ it.icon }}" style="font-size:14px;color:{{ it.color }};flex:none"></i>
+              <span style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ it.name }}</span>
+              <span style="font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:{{ it.color }};flex:none">{{ it.state }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:3px;padding:11px 14px;border-radius:11px;background:#1c1e2c;box-shadow:0 0 0 1px #3f424d;flex:none">
+        <sc-for list="{{ keyRows }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;gap:8px;font-size:10.5px">
+            <span style="width:62px;flex:none;color:#75798c">{{ r.label }}</span>
+            <span style="flex:1;font-family:ui-monospace,Menlo,monospace;color:#b2b6ca;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.value }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ isLogs }}" hint-placeholder-val="{{ false }}">
+    <div style="display: flex; flex-direction: column; gap: 10px; padding: 14px 14px 18px; width: 408px; height: 514px">
+      <div style="display:flex;align-items:center;gap:7px">
+        <h5 style="margin:0">Logs</h5>
+        <div style="margin-left:auto;display:flex;gap:5px">
+          <sc-for list="{{ logFilters }}" as="f" hint-placeholder-count="3">
+            <div onClick="{{ f.pick }}" class="btn" style="font-size:11px;padding:3px 9px;color:{{ f.fg }};border-color:{{ f.edge }};background:{{ f.bg }}">{{ f.label }}</div>
+          </sc-for>
+        </div>
+      </div>
+      
+      <div style="display: flex; flex-direction: column; padding: 10px 11px; border-radius: 11px; background: #12141f; box-shadow: 0 0 0 1px #3f424d; max-height: 430px; overflow-y: auto; width: 384px; height: 457px">
+        <sc-for list="{{ logLines }}" as="l" hint-placeholder-count="11">
+          <div style="display:flex;flex-direction:column;gap:1px;padding:6px 0;flex:none;background:linear-gradient(to right,rgba(233,233,237,.06),rgba(233,233,237,.06)) no-repeat bottom/100% 1px">
+            <div style="display:flex;gap:8px;font-family:ui-monospace,Menlo,monospace;font-size:10px">
+              <span style="color:#595d6c">{{ l.time }}</span><span style="color:{{ l.color }}">{{ l.level }}</span>
+            </div>
+            <span style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#cfd3e5;text-wrap:pretty">{{ l.msg }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>
+  </div><div style="display:flex;align-items:stretch;gap:2px;padding:6px 8px 8px;box-shadow:inset 0 1px 0 rgba(233,233,237,.07)">
+    <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="4">
+      <div onClick="{{ n.go }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 0 5px;border-radius:9px;cursor:pointer;background:{{ n.bg }};color:{{ n.fg }}" style-hover="background:rgba(233,233,237,.05)">
+        <i class="{{ n.icon }}" style="font-size:16px"></i>
+        <span style="font-size:10px;letter-spacing:.01em">{{ n.label }}</span>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:9px;padding:0 13px 10px;font-size:10.5px;color:#75798c">
+    <span style="width:6px;height:6px;border-radius:50%;background:{{ status.dot }}"></span>
+    <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ footer.left }}</span>
+    <span style="font-family:ui-monospace,Menlo,monospace">↓ {{ footer.rx }} · ↑ {{ footer.tx }}</span>
+  </div>
+
+  <sc-if value="{{ regStepProfile }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;display:grid;place-items:center;padding:20px;background:rgba(18,20,31,.62);z-index:22">
+      <div style="width:min(348px,100%);display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:12px;background:#232532;box-shadow:0 0 0 1px #9397ab,0 16px 40px rgba(0,0,0,.65)">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <span style="flex:1;font-family:var(--font-heading);font-size:16px">Register this key on…</span>
+          <i onClick="{{ closeReg }}" class="ph ph-x" style="font-size:13px;color:#75798c;cursor:pointer"></i>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:2px;max-height:172px;overflow-y:auto">
+          <sc-for list="{{ regTargets }}" as="t" hint-placeholder-count="4">
+            <div onClick="{{ t.pick }}" style="display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:8px;flex:none;cursor:{{ t.cursor }};opacity:{{ t.opacity }}" style-hover="background:rgba(233,233,237,.06)">
+              <i class="{{ t.icon }}" style="font-size:14px;color:{{ t.color }};flex:none"></i>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ t.name }}</div>
+                <div style="font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#75798c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ t.gateway }}</div>
+              </div>
+              <span style="font-size:10.5px;color:#75798c;flex:none">{{ t.hint }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="font-size:10.5px;color:#595d6c;text-wrap:pretty">Only profiles with a provisioning URL can register automatically — the rest need the line copied by hand.</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ regStepCreds }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;display:grid;place-items:center;padding:20px;background:rgba(18,20,31,.62);z-index:22">
+      <div style="width:min(348px,100%);display:flex;flex-direction:column;gap:11px;padding:16px;border-radius:12px;background:#232532;box-shadow:0 0 0 1px #9397ab,0 16px 40px rgba(0,0,0,.65)">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <div style="flex:1">
+            <div style="font-family:var(--font-heading);font-size:16px">Sign in to register</div>
+            <div style="font-size:11.5px;color:#9397ab">{{ reg.pickName }} · {{ reg.pickHost }}</div>
+          </div>
+          <i onClick="{{ closeReg }}" class="ph ph-x" style="font-size:13px;color:#75798c;cursor:pointer"></i>
+        </div>
+        <div class="field"><label>Username</label><input class="input" value="{{ reg.user }}" onChange="{{ h.regUser }}" placeholder="your account" style="background:#161826;min-height:34px;font-size:13px"></div>
+        <div class="field"><label>Password</label><input class="input" type="password" value="{{ reg.pass }}" onChange="{{ h.regPass }}" placeholder="••••••••" style="background:#161826;min-height:34px;font-size:13px"></div>
+        <div style="font-size:11px;color:#75798c;text-wrap:pretty">Used once to authorize the request — the key itself is what gets installed, and nothing is stored locally.</div>
+        <div style="display:flex;align-items:center;gap:7px;margin-top:2px">
+          <div onClick="{{ backToPick }}" class="btn btn-secondary" style="font-size:12.5px"><i class="ph ph-arrow-left"></i>Back</div>
+          <div onClick="{{ submitReg }}" class="btn btn-primary" style="flex:1;font-size:12.5px;opacity:{{ reg.submitOpacity }}"><i class="{{ reg.submitIcon }}"></i>{{ reg.submitLabel }}</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ confirmDelete }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;display:grid;place-items:center;padding:20px;background:rgba(18,20,31,.62);z-index:20">
+      <div style="width:min(340px,100%);display:flex;flex-direction:column;gap:9px;padding:16px;border-radius:12px;background:#232532;box-shadow:0 0 0 1px #9397ab,0 16px 40px rgba(0,0,0,.65)">
+        <div style="font-family:var(--font-heading);font-size:16px">Delete “{{ p.name }}”?</div>
+        <div style="font-size:12px;color:#b2b6ca;text-wrap:pretty">Removed from servers.json. The gateway's authorized_keys entry stays as it is.</div>
+        <div style="display:flex;justify-content:flex-end;gap:7px;margin-top:2px">
+          <div onClick="{{ cancelDelete }}" class="btn btn-secondary" style="font-size:12px">Cancel</div>
+          <div onClick="{{ doDelete }}" class="btn" style="font-size:12px;color:#d98484;border-color:rgba(217,132,132,.5)">Delete</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:460,&quot;height&quot;:740},&quot;keyHints&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Shell&quot;},&quot;startState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;idle&quot;,&quot;connected&quot;],&quot;default&quot;:&quot;idle&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Shell&quot;}}">
+const SEED = [
+  {name:"Production-DC1",gateway:"157.180.4.166:2255",localIP:"10.10.11.1/30",remoteIP:"10.10.11.2",lanSubnet:"192.168.4.0/24",sshTunnel:0,mtu:"1340",fullTunnel:true,dns:"8.8.8.8,1.1.1.1",provisionURL:"https://cp.linkthings.io/provision",installed:true},
+  {name:"Staging-DC2",gateway:"91.107.216.40:2255",localIP:"10.10.12.1/30",remoteIP:"10.10.12.2",lanSubnet:"192.168.12.0/24",sshTunnel:3,mtu:"1340",fullTunnel:false,dns:"",provisionURL:"https://cp.linkthings.io/provision",installed:true},
+  {name:"Client-Alexandria",gateway:"156.194.33.8:2255",localIP:"10.10.31.1/30",remoteIP:"10.10.31.2",lanSubnet:"172.16.31.0/24",sshTunnel:7,mtu:"1340",fullTunnel:true,dns:"8.8.8.8",provisionURL:"",installed:false},
+  {name:"Home-Lab",gateway:"41.35.20.114:22",localIP:"10.10.20.1/30",remoteIP:"10.10.20.2",lanSubnet:"192.168.20.0/24",sshTunnel:5,mtu:"1400",fullTunnel:false,dns:"1.1.1.1",provisionURL:"",installed:true}
+];
+const PUB = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF9pKQ2vLd7hYc0mTqR8xW1nJ4bVpZ6sHhLmQoTf3Xa2 linkthings@DESKTOP-4KJ2P1";
+const RED = "#d98484", ACC = "#9184d9", MUT = "#75798c";
+const NAV = [
+  {id:"connection",label:"Connect",icon:"ph ph-shield-check"},
+  {id:"profiles",label:"Profiles",icon:"ph ph-stack"},
+  {id:"keys",label:"Key",icon:"ph ph-key"},
+  {id:"logs",label:"Logs",icon:"ph ph-list-dashes"}
+];
+
+class Component extends DCLogic {
+  state = {
+    screen:"connection", conn:"idle", sel:0, pickerOpen:false,
+    profiles: SEED.map(p => ({...p})),
+    elapsed:0, rx:0, tx:0,
+    copied:false, toast:"", dirty:false, confirmDelete:false, provisioned:false,
+    keyTab:"authorized_keys", logFilter:"All",
+    logs:[
+      {time:"14:02:11",level:"INFO",msg:"config loaded — 4 profiles from servers.json"},
+      {time:"14:02:11",level:"INFO",msg:"key ready: ~/.ssh/linkthings_key (ed25519)"},
+      {time:"14:02:12",level:"INFO",msg:"orphan adapter sweep: none found"},
+      {time:"13:47:52",level:"INFO",msg:"disconnect: routes removed, adapter LT-Main kept"},
+      {time:"13:12:40",level:"INFO",msg:"tunnel up — Production-DC1 slot 0, mtu 1340"},
+      {time:"13:12:39",level:"INFO",msg:"route add 0.0.0.0/1 + 128.0.0.0/1 via 10.10.11.2"},
+      {time:"13:12:38",level:"INFO",msg:"channel open tun@openssh.com (slot 0) accepted"},
+      {time:"13:12:36",level:"INFO",msg:"ssh dial 157.180.4.166:2255 as root — authenticated"},
+      {time:"12:58:03",level:"ERROR",msg:"ssh dial timeout after 10s — attempt 2/5, retrying in 2s"},
+      {time:"12:57:51",level:"ERROR",msg:"Staging-DC2: permission denied (publickey) — key not authorized for slot 3"},
+      {time:"12:41:19",level:"INFO",msg:"provisioning accepted — tun_num 0, server_ip 10.10.11.2"}
+    ]
+  };
+
+  componentDidMount() {
+    if ((this.props.startState ?? "idle") === "connected") this.setState({conn:"connected", elapsed:252, rx:41238400, tx:7115776}, () => this.startTick());
+  }
+  componentWillUnmount() { clearInterval(this._t); clearTimeout(this._a); clearTimeout(this._b); }
+  startTick() {
+    clearInterval(this._t);
+    this._t = setInterval(() => this.setState(s => ({elapsed:s.elapsed+1, rx:s.rx+40000+Math.random()*180000, tx:s.tx+9000+Math.random()*40000})), 1000);
+  }
+  log(level, msg) {
+    const d = new Date(), t = [d.getHours(),d.getMinutes(),d.getSeconds()].map(n => String(n).padStart(2,"0")).join(":");
+    this.setState(s => ({logs:[{time:t,level,msg}, ...s.logs]}));
+  }
+  toggle = () => {
+    const {conn} = this.state, p = this.cur();
+    if (conn === "idle") {
+      this.setState({conn:"connecting", pickerOpen:false});
+      this.log("INFO", `ssh dial ${p.gateway} as root — opening slot ${p.sshTunnel}`);
+      this._a = setTimeout(() => {
+        this.setState({conn:"connected", elapsed:0, rx:0, tx:0}, () => this.startTick());
+        this.log("INFO", `tunnel up — ${p.name} slot ${p.sshTunnel}, mtu ${p.mtu}`);
+      }, 1800);
+    } else if (conn === "connected") {
+      clearInterval(this._t);
+      this.setState({conn:"disconnecting"});
+      this._b = setTimeout(() => { this.setState({conn:"idle", elapsed:0, rx:0, tx:0}); this.log("INFO","disconnect: routes removed, adapter LT-Main kept"); }, 1100);
+    }
+  };
+  cur() { return this.state.profiles[this.state.sel] || this.state.profiles[0]; }
+  set(k, v) { this.setState(s => { const ps = s.profiles.map(x => ({...x})); ps[s.sel][k] = v; return {profiles:ps, dirty:true, toast:""}; }); }
+  fmtBytes(b) {
+    if (b < 1024) return Math.round(b) + " B";
+    const u = ["KB","MB","GB"]; let i = -1, n = b;
+    do { n /= 1024; i++; } while (n >= 1024 && i < 2);
+    return n.toFixed(1) + " " + u[i];
+  }
+  fmtTime(s) { return [Math.floor(s/3600), Math.floor(s%3600/60), s%60].map(n => String(n).padStart(2,"0")).join(":"); }
+
+  renderVals() {
+    const st = this.state, conn = st.conn, p = this.cur();
+    const on = conn === "connected", busy = conn === "connecting" || conn === "disconnecting";
+    const keyHints = this.props.keyHints ?? true;
+
+    const status = on
+      ? {label:"Connected", headline:"Tunnel up · " + this.fmtTime(st.elapsed), sub:`${p.fullTunnel ? "All traffic" : p.lanSubnet} rides the SSH channel on slot ${p.sshTunnel}.`, dot:ACC, dotAnim:"none", pillBg:"rgba(145,132,217,.14)", pillFg:"#d2cefd", pillEdge:"rgba(145,132,217,.45)", nodeEdge:ACC, nodeGlow:"0 0 20px rgba(145,132,217,.3)", nodeFg:"#d2cefd"}
+      : conn === "connecting"
+      ? {label:"Connecting", headline:"Dialing gateway…", sub:"SSH handshake — attempt 1 of 5, retrying every 2s while the error looks retryable.", dot:ACC, dotAnim:"ltpulse 1.1s ease-in-out infinite", pillBg:"rgba(145,132,217,.1)", pillFg:"#d2cefd", pillEdge:"rgba(145,132,217,.3)", nodeEdge:"#5d5294", nodeGlow:"0 0 14px rgba(145,132,217,.2)", nodeFg:"#b5abfc"}
+      : conn === "disconnecting"
+      ? {label:"Closing", headline:"Tearing down…", sub:"Removing routes and closing the channel; LT-Main is kept for next time.", dot:"#9397ab", dotAnim:"ltpulse 1.1s ease-in-out infinite", pillBg:"rgba(233,233,237,.07)", pillFg:"#b2b6ca", pillEdge:"rgba(233,233,237,.18)", nodeEdge:"#3f424d", nodeGlow:"none", nodeFg:"#b2b6ca"}
+      : {label:"Off", headline:"No active tunnel", sub:"Nothing is routed through LinkThings — one tunnel at a time.", dot:"#595d6c", dotAnim:"none", pillBg:"rgba(233,233,237,.06)", pillFg:"#9397ab", pillEdge:"rgba(233,233,237,.16)", nodeEdge:"#3f424d", nodeGlow:"none", nodeFg:"#b2b6ca"};
+
+    const linkRow = (cap) => ({isNode:false, isLink:true, cap, title:"", addr:"", side:"", icon:"", edge:"", glow:"", fg:""});
+    const hops = [
+      {isNode:true, isLink:false, cap:"", title:"This PC", addr:p.localIP, side:"local", icon:"ph ph-desktop-tower", edge:"#3f424d", glow:"none", fg:"#b2b6ca"},
+      linkRow("ssh channel · tun@openssh.com"),
+      {isNode:true, isLink:false, cap:"", title:"Gateway", addr:p.gateway, side:"tun" + p.sshTunnel, icon:"ph ph-hard-drives", edge:status.nodeEdge, glow:status.nodeGlow, fg:status.nodeFg},
+      linkRow(p.fullTunnel ? "full tunnel" : "remote LAN only"),
+      {isNode:true, isLink:false, cap:"", title:"Remote LAN", addr:p.lanSubnet, side:"remote", icon:"ph ph-buildings", edge:"#3f424d", glow:"none", fg:"#b2b6ca"}
+    ];
+
+    const logs = st.logs.filter(l => st.logFilter === "All" || l.level === st.logFilter.toUpperCase())
+      .map(l => ({...l, color: l.level === "ERROR" ? RED : "#8b83b5"}));
+    const authPrefix = `tunnel="${p.sshTunnel}",restrict,port-forwarding `;
+    const isAuthTab = st.keyTab === "authorized_keys";
+
+    return {
+      keyHints,
+      isConnection: st.screen === "connection", isProfiles: st.screen === "profiles",
+      isKeys: st.screen === "keys", isLogs: st.screen === "logs",
+      p, status, hops,
+      flowOpacity: on ? 1 : busy ? 0.4 : 0,
+      tunnelModeTag: p.fullTunnel ? "full tunnel" : "split",
+      pickerOpen: st.pickerOpen,
+      picker: {edge: st.pickerOpen ? ACC : "#3f424d"},
+      togglePicker: () => this.setState(s => ({pickerOpen: !s.pickerOpen})),
+      navItems: NAV.map(n => {
+        const active = st.screen === n.id;
+        return {...n, bg: active ? "rgba(145,132,217,.14)" : "transparent", fg: active ? "#d2cefd" : "#9397ab",
+          go: () => this.setState({screen:n.id, pickerOpen:false})};
+      }),
+      toggleConn: this.toggle,
+      btn: on
+        ? {label:"Disconnect", icon:"ph ph-power", bg:"transparent", edge:"rgba(233,233,237,.28)", fg:"#e9e9ed"}
+        : busy
+        ? {label: conn === "connecting" ? "Cancel" : "Working…", icon:"ph ph-circle-notch", bg:"transparent", edge:"rgba(233,233,237,.22)", fg:"#9397ab"}
+        : {label:"Connect", icon:"ph ph-play", bg:"rgba(145,132,217,.12)", edge:ACC, fg:"#d2cefd"},
+      stats: [
+        {label:"Uptime", value: on ? this.fmtTime(st.elapsed) : "—", color: on ? "#e9e9ed" : MUT},
+        {label:"In", value: on ? this.fmtBytes(st.rx) : "—", color: on ? "#e9e9ed" : MUT},
+        {label:"Out", value: on ? this.fmtBytes(st.tx) : "—", color: on ? "#e9e9ed" : MUT},
+        {label:"MTU", value: p.mtu, color:"#b2b6ca"}
+      ],
+      alert: p.installed
+        ? {show:false, text:"", go:() => {}}
+        : {show:true, text:`${p.name} hasn't authorized this machine's key yet — connecting fails with “permission denied (publickey)”.`, go:() => this.setState({screen:"keys"})},
+      profileList: st.profiles.map((it, i) => ({
+        name:it.name, gateway:it.gateway, slot:it.sshTunnel,
+        select: () => this.setState({sel:i, dirty:false, toast:"", pickerOpen:false}),
+        bg: i === st.sel ? "rgba(145,132,217,.13)" : "transparent",
+        edge: i === st.sel ? "inset 0 0 0 1px rgba(145,132,217,.4)" : "none",
+        fg: i === st.sel ? "#e9e9ed" : "#cfd3e5",
+        dot: i === st.sel && on ? ACC : it.installed ? "#595d6c" : RED
+      })),
+      h: {
+        name: e => this.set("name", e.target.value),
+        gateway: e => this.set("gateway", e.target.value),
+        localIP: e => this.set("localIP", e.target.value),
+        remoteIP: e => this.set("remoteIP", e.target.value),
+        lanSubnet: e => this.set("lanSubnet", e.target.value),
+        sshTunnel: e => this.set("sshTunnel", Math.max(0, Math.min(15, parseInt(e.target.value || "0", 10) || 0))),
+        mtu: e => this.set("mtu", e.target.value),
+        dns: e => this.set("dns", e.target.value),
+        regUser: e => this.setState({regUser: e.target.value}),
+        regPass: e => this.setState({regPass: e.target.value})
+      },
+      toggleFull: () => this.set("fullTunnel", !p.fullTunnel),
+      sw: p.fullTunnel
+        ? {track:"rgba(145,132,217,.35)", edge:ACC, knob:"#d2cefd", knobLeft:"19px", note:"All traffic goes through the tunnel"}
+        : {track:"rgba(233,233,237,.1)", edge:"rgba(233,233,237,.2)", knob:"#9397ab", knobLeft:"3px", note:"Only the remote LAN goes through the tunnel"},
+      prov: p.provisionURL ? {state:"on", url:p.provisionURL, color:ACC} : {state:"off", url:"no URL / shared secret", color:MUT},
+      dirtyTag: st.dirty ? "unsaved" : "saved",
+      toast: st.toast ? {text:st.toast, color:"#b5abfc"} : {text:"", color:"transparent"},
+      save: () => { this.setState({dirty:false, toast:"Validated · written to servers.json"}); this.log("INFO", `profile "${p.name}" saved`); },
+      newProfile: () => this.setState(s => ({
+        profiles:[...s.profiles, {name:"New-Profile", gateway:"", localIP:"10.10.40.1/30", remoteIP:"10.10.40.2", lanSubnet:"", sshTunnel:0, mtu:"1340", fullTunnel:true, dns:"", provisionURL:"", installed:false}],
+        sel:s.profiles.length, dirty:true, toast:"", screen:"profiles"
+      })),
+      askDelete: () => this.setState({confirmDelete:true}),
+      cancelDelete: () => this.setState({confirmDelete:false}),
+      confirmDelete: st.confirmDelete,
+      doDelete: () => this.setState(s => s.profiles.length < 2 ? {confirmDelete:false} : {profiles:s.profiles.filter((_, i) => i !== s.sel), sel:0, confirmDelete:false, toast:"Profile removed"}),
+      keyTabs: [
+        {label:"authorized_keys", key:"authorized_keys"},
+        {label:"public key", key:"public"}
+      ].map(t => ({label:t.label, pick: () => this.setState({keyTab:t.key, copied:false}),
+        bg: st.keyTab === t.key ? "rgba(145,132,217,.16)" : "transparent",
+        fg: st.keyTab === t.key ? "#d2cefd" : "#9397ab"})),
+      keyBlock: isAuthTab
+        ? {prefix:authPrefix, body:PUB, note:`restricted to slot ${p.sshTunnel} · for ${p.name}`}
+        : {prefix:"", body:PUB, note:"ed25519 · this machine"},
+      copy: {label: st.copied ? "Copied to clipboard" : isAuthTab ? "Copy authorized_keys line" : "Copy public key", icon: st.copied ? "ph ph-check" : "ph ph-copy"},
+      copyBlock: () => { this.setState({copied:true}); this.log("INFO", isAuthTab ? "authorized_keys line copied to clipboard" : "public key copied to clipboard"); setTimeout(() => this.setState({copied:false}), 1800); },
+      regStepProfile: st.regStep === "profile",
+      regStepCreds: st.regStep === "creds",
+      toggleRegPicker: () => this.setState(s => ({regStep: s.regStep ? null : "profile"})),
+      closeReg: () => this.setState({regStep:null, regBusy:false}),
+      backToPick: () => this.setState({regStep:"profile", regBusy:false}),
+      submitReg: () => {
+        const it = st.regPick; if (!it || st.regBusy) return;
+        this.setState({regBusy:true});
+        setTimeout(() => {
+          const res = {name:it.name, tun:it.sshTunnel, server:it.remoteIP, client:it.localIP.split("/")[0]};
+          this.setState({provisioned:true, regStep:null, regBusy:false, regResult:res, regPass:""});
+          this.log("INFO", `provisioning accepted for ${it.name} — tun_num ${res.tun}, server_ip ${res.server}`);
+        }, 900);
+      },
+      reg: {
+        triggerFg: st.regStep ? "#d2cefd" : "#e9e9ed",
+        triggerEdge: st.regStep ? ACC : "rgba(233,233,237,.16)",
+        pickName: st.regPick ? st.regPick.name : "",
+        pickHost: st.regPick ? st.regPick.gateway.split(":")[0] : "",
+        user: st.regUser ?? "",
+        pass: st.regPass ?? "",
+        submitLabel: st.regBusy ? "Registering…" : "Register key",
+        submitIcon: st.regBusy ? "ph ph-circle-notch" : "ph ph-paper-plane-tilt",
+        submitOpacity: (st.regUser && st.regPass && !st.regBusy) ? 1 : 0.55,
+        resultName: (st.regResult && st.regResult.name) || p.name,
+        resultLine: st.regResult
+          ? `tun_num ${st.regResult.tun} · server_ip ${st.regResult.server} · client_ip ${st.regResult.client}`
+          : `tun_num ${p.sshTunnel} · server_ip ${p.remoteIP} · client_ip ${p.localIP.split("/")[0]}`
+      },
+      regTargets: st.profiles.map(it => ({
+        name: it.name, gateway: it.gateway,
+        hint: it.provisionURL ? "slot " + it.sshTunnel : "manual only",
+        icon: it.provisionURL ? "ph ph-paper-plane-tilt" : "ph ph-prohibit",
+        color: it.provisionURL ? ACC : MUT,
+        cursor: it.provisionURL ? "pointer" : "not-allowed",
+        opacity: it.provisionURL ? 1 : 0.45,
+        pick: () => {
+          if (!it.provisionURL) return;
+          this.setState({regStep:"creds", regPick:it, regBusy:false});
+        }
+      })),
+      provisioned: st.provisioned,
+      keyRows: [
+        {label:"Fingerprint", value:"SHA256:7p9Kq3vL2d4HxR6vN0c3Z1b9mYqW"},
+        {label:"Path", value:"~/.ssh/linkthings_key.pub"},
+        {label:"Created", value:"12 Mar 2026, 09:24"}
+      ],
+      installedCount: st.profiles.filter(x => x.installed).length + "/" + st.profiles.length,
+      installList: st.profiles.map(it => ({
+        name:it.name, state: it.installed ? "slot " + it.sshTunnel : "pending",
+        icon: it.installed ? "ph-fill ph-check-circle" : "ph ph-clock-countdown",
+        color: it.installed ? ACC : RED
+      })),
+      logFilters: ["All","Info","Error"].map(f => ({
+        label:f, pick: () => this.setState({logFilter:f}),
+        fg: st.logFilter === f ? "#d2cefd" : "#9397ab",
+        edge: st.logFilter === f ? ACC : "rgba(233,233,237,.16)",
+        bg: st.logFilter === f ? "rgba(145,132,217,.12)" : "transparent"
+      })),
+      logLines: logs,
+      footer: {
+        left: on ? `${p.name} · slot ${p.sshTunnel}` : busy ? status.headline : "Core ready · elevated",
+        rx: on ? this.fmtBytes(st.rx) : "0 B",
+        tx: on ? this.fmtBytes(st.tx) : "0 B"
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>
